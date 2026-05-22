@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}批发订单管理{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --sidebar-width: 220px;
+        }
+        body {
+            font-size: 14px;
+            background: #f5f6fa;
+        }
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: var(--sidebar-width);
+            background: #1a1a2e;
+            color: #ccc;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .sidebar .brand {
+            padding: 18px 16px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .sidebar .nav-link {
+            color: #a0a0b0;
+            padding: 10px 16px;
+            border-radius: 0;
+            font-size: 14px;
+            transition: all 0.15s;
+        }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: #fff;
+            background: rgba(255,255,255,0.06);
+        }
+        .sidebar .nav-link i {
+            width: 20px;
+            margin-right: 8px;
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px 24px;
+            min-height: 100vh;
+        }
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .stat-card {
+            border-left: 4px solid;
+            transition: transform 0.15s;
+        }
+        .stat-card:hover { transform: translateY(-1px); }
+        .stat-card.primary { border-left-color: #4361ee; }
+        .stat-card.success { border-left-color: #2ec4a6; }
+        .stat-card.warning { border-left-color: #f4a261; }
+        .stat-card.danger  { border-left-color: #e76f51; }
+        .stat-card .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-card .stat-label { color: #888; font-size: 13px; }
+
+        /* 尺码矩阵 */
+        .matrix-table th, .matrix-table td {
+            text-align: center;
+            vertical-align: middle;
+            padding: 6px 4px;
+            font-size: 13px;
+        }
+        .matrix-table .color-label {
+            text-align: left;
+            font-weight: 500;
+        }
+        .matrix-table .color-dot {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            margin-right: 6px;
+            vertical-align: middle;
+        }
+        .matrix-table input.form-control {
+            width: 60px;
+            text-align: center;
+            padding: 4px 2px;
+            font-size: 13px;
+            display: inline-block;
+        }
+        .matrix-table .shipped-info {
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* 状态标签 */
+        .badge-pending { background: #f4a261; }
+        .badge-partial { background: #4361ee; }
+        .badge-completed { background: #2ec4a6; }
+
+        /* 手机适配 */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                padding-bottom: 8px;
+            }
+            .sidebar .nav { display: flex; flex-wrap: wrap; }
+            .sidebar .nav-item { flex: none; }
+            .main-content {
+                margin-left: 0;
+                padding: 12px;
+            }
+            .matrix-table input.form-control { width: 46px; }
+        }
+
+        /* 发货清单打印样式 */
+        @media print {
+            .sidebar, .no-print { display: none !important; }
+            .main-content { margin-left: 0; padding: 0; }
+            .card { box-shadow: none; border: 1px solid #ddd; }
+        }
+
+        .timeline { border-left: 2px solid #e9ecef; padding-left: 20px; margin-left: 10px; }
+        .timeline-item { margin-bottom: 16px; position: relative; }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 4px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #4361ee;
+        }
+        .flash-msg { position: fixed; top: 16px; right: 16px; z-index: 9999; min-width: 280px; }
+    </style>
+</head>
+<body>
+    <!-- 侧边栏 -->
+    <nav class="sidebar">
+        <div class="brand"><i class="bi bi-box-seam"></i> 批发管理</div>
+        <ul class="nav flex-column mt-2">
+            <li class="nav-item">
+                <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('dashboard') }}">
+                    <i class="bi bi-speedometer2"></i> 首页
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path.startswith('/customers') %}active{% endif %}" href="{{ url_for('customer_list') }}">
+                    <i class="bi bi-people"></i> 客户管理
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path.startswith('/orders') %}active{% endif %}" href="{{ url_for('order_list') }}">
+                    <i class="bi bi-cart3"></i> 订单管理
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link {% if request.path.startswith('/products') %}active{% endif %}" href="{{ url_for('product_list') }}">
+                    <i class="bi bi-gear"></i> 产品配置
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- 主内容 -->
+    <div class="main-content">
+        <!-- 闪存消息 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="flash-msg">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block title %}订单管理{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="bi bi-cart3 me-2"></i>订单管理</h4>
+    <div>
+        <button class="btn btn-sm btn-outline-secondary me-1" type="button" data-bs-toggle="collapse" data-bs-target="#ordersMatrix">
+            <i class="bi bi-grid-3x3-gap me-1"></i>矩阵总览
+        </button>
+        <a href="{{ url_for('order_add') }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-lg me-1"></i> 新建订单
+        </a>
+    </div>
+</div>
+
+<!-- 全局矩阵总览 -->
+<div class="collapse mb-4" id="ordersMatrix">
+    <div class="card">
+        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+            <strong><i class="bi bi-grid-3x3-gap me-2"></i>全部订单矩阵总览</strong>
+            <div>
+                <span class="badge bg-primary me-1">总订 {{ total_qty }}双</span>
+                <span class="badge bg-success me-1">已发 {{ total_shipped }}双</span>
+                <span class="badge bg-warning text-dark">待发 {{ total_pending }}双</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-bordered matrix-table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:80px">颜色</th>
+                            {% for s in sizes %}<th>{{ s.size_label }}</th>{% endfor %}
+                            <th>小计</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for color in colors %}
+                        <tr>
+                            <td class="color-label">
+                                <span class="color-dot" style="background:{{ color.hex_code }}"></span>{{ color.name }}
+                            </td>
+                            {% set row_total = namespace(q=0) %}
+                            {% for s in sizes %}
+                            {% set q = order_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set sq = shipped_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set pq = pending_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set row_total.q = row_total.q + q %}
+                            <td>
+                                {% if q > 0 %}
+                                <strong>{{ q }}</strong>
+                                <small class="d-block text-muted" style="font-size:10px">发{{ sq }}/待{{ pq }}</small>
+                                {% else %}<span class="text-muted">-</span>{% endif %}
+                            </td>
+                            {% endfor %}
+                            <td><strong>{{ row_total.q }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td>合计</td>
+                            {% for s in sizes %}
+                            {% set col_total = namespace(q=0) %}
+                            {% for color in colors %}
+                            {% set col_total.q = col_total.q + order_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% endfor %}
+                            <td>{{ col_total.q }}</td>
+                            {% endfor %}
+                            <td>{{ total_qty }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>订单号</th>
+                        <th>客户</th>
+                        <th>产品</th>
+                        <th>单价</th>
+                        <th>总数</th>
+                        <th>已发</th>
+                        <th>待发</th>
+                        <th>加单</th>
+                        <th>状态</th>
+                        <th>日期</th>
+                        <th class="text-end">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in orders %}
+                    <tr class="{{ 'table-warning' if o.total_pending > 0 else '' }}">
+                        <td>
+                            <a href="{{ url_for('order_detail', order_id=o.id) }}" class="text-decoration-none fw-bold">
+                                {{ o.order_number }}
+                            </a>
+                        </td>
+                        <td>{{ o.customer.name }}</td>
+                        <td>{{ o.product.name }}</td>
+                        <td>{% if o.unit_price %}¥{{ "%.0f"|format(o.unit_price) }}{% else %}-{% endif %}</td>
+                        <td>{{ o.total_qty }}</td>
+                        <td class="text-success fw-bold">{{ o.total_shipped }}</td>
+                        <td class="{{ 'text-danger fw-bold' if o.total_pending > 0 else '' }}">
+                            {{ o.total_pending }}
+                        </td>
+                        <td>
+                            {% if o.batch_count > 1 %}
+                            <span class="badge bg-info">{{ o.batch_count }}次</span>
+                            {% else %}1次{% endif %}
+                        </td>
+                        <td>
+                            {% if o.status == 'completed' %}
+                            <span class="badge badge-completed">已完成</span>
+                            {% elif o.status == 'partial' %}
+                            <span class="badge badge-partial">部分发货</span>
+                            {% else %}
+                            <span class="badge badge-pending">待发货</span>
+                            {% endif %}
+                        </td>
+                        <td><small>{{ o.created_at.strftime('%Y-%m-%d') }}</small></td>
+                        <td class="text-end">
+                            {% if o.total_pending > 0 %}
+                            <a href="{{ url_for('order_ship', order_id=o.id) }}" class="btn btn-sm btn-warning me-1">发货</a>
+                            {% endif %}
+                            <a href="{{ url_for('order_add_batch', order_id=o.id) }}" class="btn btn-sm btn-outline-info">加单</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5 text-muted">
+            <i class="bi bi-cart3 fs-1"></i>
+            <p class="mt-2">暂无订单，<a href="{{ url_for('order_add') }}">创建第一个订单</a></p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
