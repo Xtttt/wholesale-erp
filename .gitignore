@@ -3,6 +3,8 @@ __pycache__/
 *.pyo
 *.db
 *.db-journal
+!erp.db
+!erp.db-journal
 uploads/*
 !uploads/.gitkeep
 .env

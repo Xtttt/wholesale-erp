@@ -64,6 +64,22 @@ def dashboard():
     total_shipped = sum(o.total_shipped for o in orders)
     total_pending = sum(o.total_pending for o in orders)
 
+    # 全局矩阵（所有客户合计）
+    product = Product.query.filter_by(is_active=True).first()
+    colors = []; sizes = []
+    shipped_matrix = {}; pending_matrix = {}; order_matrix = {}
+    if product:
+        colors = product.colors.order_by(ProductColor.sort_order).all()
+        sizes = product.sizes.order_by(ProductSize.sort_order).all()
+    for o in orders:
+        for line in o.lines.all():
+            sm = shipped_matrix.setdefault(line.color, {})
+            sm[line.size] = sm.get(line.size, 0) + line.shipped_qty
+            pm = pending_matrix.setdefault(line.color, {})
+            pm[line.size] = pm.get(line.size, 0) + line.pending_qty
+            om = order_matrix.setdefault(line.color, {})
+            om[line.size] = om.get(line.size, 0) + line.qty
+
     # 待处理订单
     pending_orders = [o for o in orders if o.total_pending > 0]
     pending_orders.sort(key=lambda o: o.created_at, reverse=True)
@@ -74,7 +90,11 @@ def dashboard():
                            total_qty=total_qty,
                            total_shipped=total_shipped,
                            total_pending=total_pending,
-                           pending_orders=pending_orders[:10])
+                           pending_orders=pending_orders[:10],
+                           colors=colors, sizes=sizes,
+                           shipped_matrix=shipped_matrix,
+                           pending_matrix=pending_matrix,
+                           order_matrix=order_matrix)
 
 
 # ========== 客户管理 ==========
