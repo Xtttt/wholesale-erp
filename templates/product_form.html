@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}{{ '编辑产品' if product else '添加产品' }}{% endblock %}
+{% block content %}
+
+<h4 class="mb-4">
+    <i class="bi bi-{{ 'pencil' if product else 'box' }} me-2"></i>
+    {{ '编辑产品' if product else '添加产品' }}
+</h4>
+
+<div class="card">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" id="productForm">
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label">产品名称 <span class="text-danger">*</span></label>
+                    <input type="text" name="name" class="form-control" required
+                           value="{{ product.name if product else '' }}"
+                           placeholder="例如：2603人字拖">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">产品图片</label>
+                    <input type="file" name="image" class="form-control" accept="image/*">
+                    {% if product and product.image %}
+                    <div class="mt-2">
+                        <img src="{{ url_for('static', filename='../uploads/' + product.image) }}"
+                             style="max-height:80px" class="rounded">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- 颜色配置 -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">颜色配置</label>
+                <div id="colorsContainer">
+                    {% if product %}
+                    {% for c in product.get_sorted_colors() %}
+                    <div class="row g-2 mb-2 color-row">
+                        <div class="col-5">
+                            <input type="text" name="color_name[]" class="form-control form-control-sm"
+                                   value="{{ c.name }}" placeholder="颜色名称">
+                        </div>
+                        <div class="col-5">
+                            <input type="color" name="color_hex[]" class="form-control form-control-sm"
+                                   value="{{ c.hex_code }}">
+                        </div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeColor(this)">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    {% for name, hex in [('巧克力','#8B4513'),('深棕','#5C3317'),('芒果棕','#C49B5A'),('米白','#F5F0E1'),('陶土棕','#B8744B'),('红','#D43030'),('黄','#E8C840'),('黑','#1A1A1A')] %}
+                    <div class="row g-2 mb-2 color-row">
+                        <div class="col-5">
+                            <input type="text" name="color_name[]" class="form-control form-control-sm"
+                                   value="{{ name }}" placeholder="颜色名称">
+                        </div>
+                        <div class="col-5">
+                            <input type="color" name="color_hex[]" class="form-control form-control-sm"
+                                   value="{{ hex }}">
+                        </div>
+                        <div class="col-2">
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeColor(this)">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addColor()">
+                    <i class="bi bi-plus me-1"></i> 添加颜色
+                </button>
+            </div>
+
+            <!-- 尺码配置 -->
+            <div class="mb-4">
+                <label class="form-label fw-bold">尺码配置</label>
+                <input type="text" name="size_labels" class="form-control" id="sizeInput"
+                       value="{% if product %}{% for s in product.get_sorted_sizes() %}{{ s.size_label }}{% if not loop.last %},{% endif %}{% endfor %}{% else %}36,37,38,39,40,41{% endif %}"
+                       placeholder="用英文逗号分隔，例如：36,37,38,39,40,41">
+                <div class="form-text">用英文逗号或中文逗号分隔尺码</div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="bi bi-check-lg me-1"></i> 保存
+            </button>
+            <a href="{{ url_for('product_list') }}" class="btn btn-outline-secondary">取消</a>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+function addColor() {
+    const row = document.createElement('div');
+    row.className = 'row g-2 mb-2 color-row';
+    row.innerHTML = `
+        <div class="col-5">
+            <input type="text" name="color_name[]" class="form-control form-control-sm" placeholder="颜色名称">
+        </div>
+        <div class="col-5">
+            <input type="color" name="color_hex[]" class="form-control form-control-sm" value="#CCCCCC">
+        </div>
+        <div class="col-2">
+            <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeColor(this)">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>`;
+    document.getElementById('colorsContainer').appendChild(row);
+}
+
+function removeColor(btn) {
+    const rows = document.querySelectorAll('.color-row');
+    if (rows.length <= 1) {
+        alert('至少保留一个颜色');
+        return;
+    }
+    btn.closest('.color-row').remove();
+}
+</script>
+{% endblock %}

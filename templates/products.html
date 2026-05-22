@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}产品配置{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0"><i class="bi bi-gear me-2"></i>产品配置</h4>
+    <a href="{{ url_for('product_add') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i> 添加产品
+    </a>
+</div>
+
+{% if products %}
+<div class="row g-3">
+    {% for p in products %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <h5 class="card-title">{{ p.name }}</h5>
+                    {% if p.is_active %}
+                    <span class="badge badge-completed">启用</span>
+                    {% else %}
+                    <span class="badge bg-secondary">停用</span>
+                    {% endif %}
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">颜色：</small>
+                    {% for c in p.colors.all() %}
+                    <span class="badge me-1" style="background:{{ c.hex_code }};color:{% if c.hex_code|replace('#','') < '888888' %}white{% else %}black{% endif %}">
+                        {{ c.name }}
+                    </span>
+                    {% endfor %}
+                </div>
+                <div class="mt-1">
+                    <small class="text-muted">尺码：</small>
+                    {% for s in p.get_sorted_sizes() %}
+                    <span class="badge bg-light text-dark me-1">{{ s.size_label }}</span>
+                    {% endfor %}
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">订单数：{{ p.orders.count() }}</small>
+                </div>
+            </div>
+            <div class="card-footer bg-transparent">
+                <a href="{{ url_for('product_edit', product_id=p.id) }}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-pencil me-1"></i> 编辑
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-box fs-1"></i>
+    <p class="mt-2">暂无产品配置</p>
+</div>
+{% endif %}
+
+{% endblock %}

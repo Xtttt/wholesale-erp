@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}{{ '编辑客户' if customer else '添加客户' }}{% endblock %}
+{% block content %}
+
+<h4 class="mb-4">
+    <i class="bi bi-{{ 'pencil' if customer else 'person-plus' }} me-2"></i>
+    {{ '编辑客户' if customer else '添加客户' }}
+</h4>
+
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label class="form-label">客户名称 <span class="text-danger">*</span></label>
+                        <input type="text" name="name" class="form-control" required
+                               value="{{ customer.name if customer else '' }}"
+                               placeholder="例如：彤彤">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">默认单价 (¥)</label>
+                        <input type="number" name="unit_price" class="form-control" step="0.01" min="0"
+                               value="{{ '%.0f'|format(customer.unit_price) if customer and customer.unit_price else '' }}"
+                               placeholder="例如：55">
+                        <div class="form-text">创建订单时会自动填入，可手动修改</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">备注</label>
+                        <textarea name="notes" class="form-control" rows="2"
+                                  placeholder="其他信息...">{{ customer.notes if customer else '' }}</textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i> 保存
+                        </button>
+                        <a href="{{ url_for('customer_list') }}" class="btn btn-outline-secondary">取消</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
