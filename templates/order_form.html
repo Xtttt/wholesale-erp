@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}新建订单{% endblock %}
 {% block content %}
 
-<h4 class="mb-4"><i class="bi bi-cart-plus me-2"></i>新建订单</h4>
+<h1 class="page-title"><i class="bi bi-cart-plus"></i>新建订单</h1>
 
 <div class="card">
-    <div class="card-body">
+    <div class="card-body p-4">
         <form method="POST" id="orderForm">
             <!-- 基本信息 -->
             <div class="row g-3 mb-4">
@@ -38,7 +38,7 @@
             <label class="form-label fw-bold">尺码矩阵</label>
             <div class="table-responsive" id="matrixContainer">
                 <table class="table table-bordered matrix-table" id="matrixTable">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th style="width:100px">颜色</th>
                         </tr>
@@ -50,15 +50,17 @@
             </div>
 
             <!-- 备注 -->
-            <div class="mb-3">
+            <div class="mb-4">
                 <label class="form-label">备注</label>
                 <textarea name="notes" class="form-control" rows="2" placeholder="订单备注..."></textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bi bi-check-lg me-1"></i> 创建订单
-            </button>
-            <a href="{{ url_for('order_list') }}" class="btn btn-outline-secondary">取消</a>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-lg me-1"></i> 创建订单
+                </button>
+                <a href="{{ url_for('order_list') }}" class="btn btn-outline-secondary">取消</a>
+            </div>
         </form>
     </div>
 </div>
@@ -66,7 +68,6 @@
 {% endblock %}
 {% block scripts %}
 <script>
-// 选择客户时自动填入单价
 function loadCustomerPrice(customerId) {
     if (!customerId) return;
     fetch('/api/customer/' + customerId + '/price')
@@ -78,7 +79,6 @@ function loadCustomerPrice(customerId) {
         });
 }
 
-// 选择产品时加载颜色和尺码
 function loadProductConfig(productId) {
     if (!productId) return;
     fetch('/api/product/' + productId + '/config')
@@ -90,13 +90,11 @@ function buildMatrix(colors, sizes) {
     const thead = document.querySelector('#matrixTable thead');
     const tbody = document.querySelector('#matrixTable tbody');
 
-    // 表头
     let headHtml = '<tr><th style="width:100px">颜色</th>';
     sizes.forEach(s => { headHtml += '<th>' + s + '</th>'; });
     headHtml += '</tr>';
     thead.innerHTML = headHtml;
 
-    // 数据行
     let bodyHtml = '';
     colors.forEach(color => {
         bodyHtml += '<tr>';
@@ -112,7 +110,6 @@ function buildMatrix(colors, sizes) {
     tbody.innerHTML = bodyHtml;
 }
 
-// 页面加载时，如果已有默认产品，自动加载矩阵
 document.addEventListener('DOMContentLoaded', function() {
     const productSelect = document.querySelector('select[name="product_id"]');
     if (productSelect && productSelect.value) {

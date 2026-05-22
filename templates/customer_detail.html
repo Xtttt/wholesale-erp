@@ -1,11 +1,9 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}{{ customer.name }} - 客户详情{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0">
-        <i class="bi bi-person-badge me-2"></i>{{ customer.name }}
-    </h4>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0"><i class="bi bi-person-badge"></i>{{ customer.name }}</h1>
     <div>
         <a href="{{ url_for('order_add') }}?customer={{ customer.id }}" class="btn btn-primary btn-sm">
             <i class="bi bi-cart-plus me-1"></i> 新建订单
@@ -20,22 +18,22 @@
 <div class="row g-3 mb-4">
     <div class="col-md-4">
         <div class="card p-3">
-            <small class="text-muted">客户名称</small>
-            <div class="fw-bold fs-5">{{ customer.name }}</div>
+            <small class="text-muted" style="font-size:12px;letter-spacing:0.05em;text-transform:uppercase;">客户名称</small>
+            <div class="fw-bold" style="font-size:18px;margin-top:4px;">{{ customer.name }}</div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card p-3">
-            <small class="text-muted">默认单价</small>
-            <div class="fw-bold fs-5">
+            <small class="text-muted" style="font-size:12px;letter-spacing:0.05em;text-transform:uppercase;">默认单价</small>
+            <div class="fw-bold" style="font-size:18px;margin-top:4px;">
                 {% if customer.unit_price %}¥{{ '%.0f'|format(customer.unit_price) }}{% else %}-{% endif %}
             </div>
         </div>
     </div>
     <div class="col-md-4">
         <div class="card p-3">
-            <small class="text-muted">添加时间</small>
-            <div class="fw-bold fs-5">{{ customer.created_at.strftime('%Y-%m-%d') }}</div>
+            <small class="text-muted" style="font-size:12px;letter-spacing:0.05em;text-transform:uppercase;">添加时间</small>
+            <div class="fw-bold" style="font-size:18px;margin-top:4px;">{{ customer.created_at.strftime('%Y-%m-%d') }}</div>
         </div>
     </div>
 </div>
@@ -51,7 +49,7 @@
 <!-- 订单统计 -->
 <div class="row g-3 mb-4">
     <div class="col-4">
-        <div class="card stat-card primary p-3">
+        <div class="stat-card primary">
             <div class="stat-label">订单总数</div>
             <div class="stat-value">
                 {% set total_qty = orders|sum(attribute='total_qty') %}
@@ -60,7 +58,7 @@
         </div>
     </div>
     <div class="col-4">
-        <div class="card stat-card success p-3">
+        <div class="stat-card success">
             <div class="stat-label">已发货</div>
             <div class="stat-value">
                 {% set total_shipped = orders|sum(attribute='total_shipped') %}
@@ -69,7 +67,7 @@
         </div>
     </div>
     <div class="col-4">
-        <div class="card stat-card warning p-3">
+        <div class="stat-card warning">
             <div class="stat-label">待发货</div>
             <div class="stat-value">
                 {% set total_pending = orders|sum(attribute='total_pending') %}
@@ -88,7 +86,7 @@
         {% if orders %}
         <div class="table-responsive">
             <table class="table table-hover mb-0">
-                <thead class="table-light">
+                <thead>
                     <tr>
                         <th>订单号</th>
                         <th>产品</th>
@@ -104,7 +102,7 @@
                 </thead>
                 <tbody>
                     {% for o in orders %}
-                    <tr class="{{ 'table-warning' if o.total_pending > 0 else '' }}">
+                    <tr>
                         <td>
                             <a href="{{ url_for('order_detail', order_id=o.id) }}" class="text-decoration-none fw-bold">
                                 {{ o.order_number }}
@@ -117,7 +115,7 @@
                         <td class="{{ 'text-danger fw-bold' if o.total_pending > 0 else '' }}">{{ o.total_pending }}</td>
                         <td>
                             {% if o.batch_count > 1 %}
-                            <span class="badge bg-info">{{ o.batch_count }}次</span>
+                            <span class="badge" style="background:#e0e7ff;color:#3730a3;">{{ o.batch_count }}次</span>
                             {% else %}1次{% endif %}
                         </td>
                         <td>
@@ -129,7 +127,7 @@
                             <span class="badge badge-pending">待发货</span>
                             {% endif %}
                         </td>
-                        <td><small>{{ o.created_at.strftime('%Y-%m-%d') }}</small></td>
+                        <td><small class="text-muted">{{ o.created_at.strftime('%Y-%m-%d') }}</small></td>
                         <td class="text-end">
                             {% if o.total_pending > 0 %}
                             <a href="{{ url_for('order_ship', order_id=o.id) }}" class="btn btn-sm btn-warning me-1">发货</a>
@@ -142,9 +140,11 @@
             </table>
         </div>
         {% else %}
-        <div class="text-center py-5 text-muted">
-            <i class="bi bi-cart3 fs-1"></i>
-            <p class="mt-2">暂无订单</p>
+        <div class="text-center py-5">
+            <div style="width:64px;height:64px;border-radius:50%;background:var(--surface-strong);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
+                <i class="bi bi-cart3 fs-3" style="color:var(--muted-soft)"></i>
+            </div>
+            <p class="text-muted mb-3">暂无订单</p>
             <a href="{{ url_for('order_add') }}?customer={{ customer.id }}" class="btn btn-primary btn-sm">
                 <i class="bi bi-cart-plus me-1"></i> 创建第一个订单
             </a>

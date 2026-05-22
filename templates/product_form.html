@@ -1,14 +1,14 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}{{ '编辑产品' if product else '添加产品' }}{% endblock %}
 {% block content %}
 
-<h4 class="mb-4">
-    <i class="bi bi-{{ 'pencil' if product else 'box' }} me-2"></i>
+<h1 class="page-title">
+    <i class="bi bi-{{ 'pencil' if product else 'box' }}"></i>
     {{ '编辑产品' if product else '添加产品' }}
-</h4>
+</h1>
 
 <div class="card">
-    <div class="card-body">
+    <div class="card-body p-4">
         <form method="POST" enctype="multipart/form-data" id="productForm">
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
@@ -23,7 +23,7 @@
                     {% if product and product.image %}
                     <div class="mt-2">
                         <img src="{{ url_for('static', filename='../uploads/' + product.image) }}"
-                             style="max-height:80px" class="rounded">
+                             style="max-height:80px;border-radius:8px;">
                     </div>
                     {% endif %}
                 </div>
@@ -71,7 +71,7 @@
                     {% endfor %}
                     {% endif %}
                 </div>
-                <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="addColor()">
+                <button type="button" class="btn btn-sm btn-outline-secondary mt-1" onclick="addColor()">
                     <i class="bi bi-plus me-1"></i> 添加颜色
                 </button>
             </div>
@@ -85,10 +85,12 @@
                 <div class="form-text">用英文逗号或中文逗号分隔尺码</div>
             </div>
 
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="bi bi-check-lg me-1"></i> 保存
-            </button>
-            <a href="{{ url_for('product_list') }}" class="btn btn-outline-secondary">取消</a>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-lg me-1"></i> 保存
+                </button>
+                <a href="{{ url_for('product_list') }}" class="btn btn-outline-secondary">取消</a>
+            </div>
         </form>
     </div>
 </div>

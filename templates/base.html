@@ -1,115 +1,414 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}批发订单管理{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         :root {
-            --sidebar-width: 220px;
+            --canvas: #f5f5f5;
+            --canvas-soft: #fafafa;
+            --ink: #292524;
+            --ink-active: #0c0a09;
+            --body: #4e4e4e;
+            --body-strong: #292524;
+            --muted: #777169;
+            --muted-soft: #a8a29e;
+            --hairline: #e7e5e4;
+            --hairline-soft: #f0efed;
+            --hairline-strong: #d6d3d1;
+            --surface-card: #ffffff;
+            --surface-strong: #f0efed;
+            --on-primary: #ffffff;
+            --gradient-mint: #a7e5d3;
+            --gradient-peach: #f4c5a8;
+            --gradient-lavender: #c8b8e0;
+            --gradient-sky: #a8c8e8;
+            --gradient-rose: #e8b8c4;
+            --semantic-error: #dc2626;
+            --semantic-success: #16a34a;
+            --sidebar-width: 240px;
+            --font-display: 'EB Garamond', 'Times New Roman', serif;
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
         }
         body {
-            font-size: 14px;
-            background: #f5f6fa;
+            font-family: var(--font-body);
+            font-size: 15px;
+            background: var(--canvas);
+            color: var(--ink);
+            letter-spacing: 0.01em;
         }
+
+        /* ===== Sidebar ===== */
         .sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
+            position: fixed; top: 0; left: 0; bottom: 0;
             width: var(--sidebar-width);
-            background: #1a1a2e;
-            color: #ccc;
+            background: var(--ink);
+            color: var(--muted-soft);
             z-index: 1000;
             overflow-y: auto;
+            border-right: 1px solid rgba(255,255,255,0.06);
         }
         .sidebar .brand {
-            padding: 18px 16px;
-            font-size: 18px;
-            font-weight: 700;
+            padding: 24px 20px;
+            font-family: var(--font-display);
+            font-size: 22px; font-weight: 400;
             color: #fff;
+            letter-spacing: -0.02em;
             border-bottom: 1px solid rgba(255,255,255,0.08);
         }
+        .sidebar .brand i { margin-right: 10px; opacity: 0.7; }
         .sidebar .nav-link {
-            color: #a0a0b0;
-            padding: 10px 16px;
-            border-radius: 0;
-            font-size: 14px;
+            color: var(--muted-soft);
+            padding: 11px 20px; border-radius: 0;
+            font-size: 14px; font-weight: 500;
             transition: all 0.15s;
+            letter-spacing: 0.02em;
         }
         .sidebar .nav-link:hover, .sidebar .nav-link.active {
             color: #fff;
-            background: rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.08);
         }
         .sidebar .nav-link i {
-            width: 20px;
-            margin-right: 8px;
+            width: 20px; margin-right: 10px; opacity: 0.6;
         }
+        .sidebar .nav-link:hover i, .sidebar .nav-link.active i { opacity: 1; }
+
+        /* ===== Main Content ===== */
         .main-content {
             margin-left: var(--sidebar-width);
-            padding: 20px 24px;
+            padding: 32px 40px;
             min-height: 100vh;
+            background: var(--canvas);
+            position: relative;
+            z-index: 1;
         }
-        .card {
-            border: none;
-            border-radius: 10px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-        }
-        .stat-card {
-            border-left: 4px solid;
-            transition: transform 0.15s;
-        }
-        .stat-card:hover { transform: translateY(-1px); }
-        .stat-card.primary { border-left-color: #4361ee; }
-        .stat-card.success { border-left-color: #2ec4a6; }
-        .stat-card.warning { border-left-color: #f4a261; }
-        .stat-card.danger  { border-left-color: #e76f51; }
-        .stat-card .stat-value { font-size: 28px; font-weight: 700; }
-        .stat-card .stat-label { color: #888; font-size: 13px; }
 
-        /* 尺码矩阵 */
+        /* ===== Page Title ===== */
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 32px; font-weight: 400;
+            color: var(--ink);
+            letter-spacing: -0.02em;
+            line-height: 1.15;
+            margin-bottom: 28px;
+        }
+        .page-title i { opacity: 0.4; margin-right: 12px; }
+
+        /* ===== Cards ===== */
+        .card {
+            border: 1px solid var(--hairline);
+            border-radius: 16px;
+            background: var(--surface-card);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+            transition: box-shadow 0.2s;
+        }
+        .card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .card-header {
+            background: transparent;
+            border-bottom: 1px solid var(--hairline-soft);
+            font-weight: 500;
+            padding: 16px 20px;
+        }
+        .card-body { padding: 20px; }
+
+        /* ===== Stat Cards ===== */
+        .stat-card {
+            border: 1px solid var(--hairline);
+            border-radius: 16px;
+            background: var(--surface-card);
+            padding: 24px !important;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -30px; right: -30px;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .stat-card.primary::before { background: var(--gradient-sky); }
+        .stat-card.success::before { background: var(--gradient-mint); }
+        .stat-card.warning::before { background: var(--gradient-peach); }
+        .stat-card.danger::before { background: var(--gradient-rose); }
+        .stat-card .stat-value {
+            font-family: var(--font-display);
+            font-size: 36px; font-weight: 400;
+            color: var(--ink);
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        }
+        .stat-card .stat-label {
+            color: var(--muted);
+            font-size: 13px; font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        /* ===== Matrix Table ===== */
         .matrix-table th, .matrix-table td {
             text-align: center;
             vertical-align: middle;
-            padding: 6px 4px;
+            padding: 8px 6px;
             font-size: 13px;
+            border-color: var(--hairline-soft);
+        }
+        .matrix-table th {
+            background: var(--canvas-soft);
+            font-weight: 500;
+            color: var(--muted);
+            font-size: 12px;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
         }
         .matrix-table .color-label {
             text-align: left;
             font-weight: 500;
+            white-space: nowrap;
         }
         .matrix-table .color-dot {
             display: inline-block;
-            width: 14px;
-            height: 14px;
-            border-radius: 3px;
-            margin-right: 6px;
+            width: 14px; height: 14px;
+            border-radius: 4px;
+            margin-right: 8px;
             vertical-align: middle;
         }
         .matrix-table input.form-control {
-            width: 60px;
-            text-align: center;
-            padding: 4px 2px;
-            font-size: 13px;
+            width: 60px; text-align: center;
+            padding: 6px 4px; font-size: 13px;
             display: inline-block;
+            border-radius: 8px;
+            border-color: var(--hairline);
+        }
+        .matrix-table input.form-control:focus {
+            border-color: var(--ink);
+            box-shadow: 0 0 0 2px rgba(41,37,36,0.1);
         }
         .matrix-table .shipped-info {
             font-size: 11px;
-            color: #888;
+            color: var(--muted-soft);
         }
 
-        /* 状态标签 */
-        .badge-pending { background: #f4a261; }
-        .badge-partial { background: #4361ee; }
-        .badge-completed { background: #2ec4a6; }
+        /* ===== Buttons ===== */
+        .btn {
+            font-weight: 500; font-size: 14px;
+            letter-spacing: 0.01em;
+            border-radius: 9999px;
+            padding: 8px 20px;
+            transition: all 0.15s;
+        }
+        .btn-primary {
+            background: var(--ink);
+            border-color: var(--ink);
+            color: var(--on-primary);
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background: var(--ink-active);
+            border-color: var(--ink-active);
+            color: var(--on-primary);
+        }
+        .btn-outline-secondary {
+            border-color: var(--hairline-strong);
+            color: var(--ink);
+            background: transparent;
+        }
+        .btn-outline-secondary:hover {
+            background: var(--surface-strong);
+            border-color: var(--hairline-strong);
+            color: var(--ink);
+        }
+        .btn-outline-info {
+            border-color: var(--gradient-sky);
+            color: var(--ink);
+        }
+        .btn-outline-info:hover {
+            background: var(--gradient-sky);
+            color: var(--ink-active);
+        }
+        .btn-outline-danger {
+            border-color: #fca5a5;
+            color: var(--semantic-error);
+        }
+        .btn-outline-danger:hover {
+            background: #fef2f2;
+            border-color: #fca5a5;
+        }
+        .btn-warning {
+            background: #f59e0b;
+            border-color: #f59e0b;
+            color: #fff;
+        }
+        .btn-warning:hover {
+            background: #d97706;
+            border-color: #d97706;
+            color: #fff;
+        }
+        .btn-success {
+            background: var(--semantic-success);
+            border-color: var(--semantic-success);
+        }
+        .btn-sm { padding: 6px 16px; font-size: 13px; }
+        .btn-lg { padding: 12px 28px; font-size: 16px; }
 
-        /* 手机适配 */
+        /* ===== Tables ===== */
+        .table {
+            color: var(--ink);
+            --bs-table-hover-bg: var(--canvas-soft);
+        }
+        .table > thead {
+            --bs-table-bg: var(--canvas-soft);
+            --bs-table-color: var(--muted);
+        }
+        .table > thead th {
+            font-weight: 500; font-size: 12px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--muted);
+            border-bottom-color: var(--hairline);
+            padding: 12px 16px;
+        }
+        .table > tbody td {
+            border-bottom-color: var(--hairline-soft);
+            padding: 14px 16px;
+            vertical-align: middle;
+        }
+        .table-hover > tbody > tr:hover > td { background: var(--canvas-soft); }
+        .table > tfoot td {
+            border-top: 2px solid var(--hairline);
+            font-weight: 600;
+        }
+
+        /* ===== Forms ===== */
+        .form-control, .form-select {
+            border-radius: 10px;
+            border-color: var(--hairline);
+            padding: 10px 14px;
+            font-size: 14px;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--ink);
+            box-shadow: 0 0 0 3px rgba(41,37,36,0.08);
+        }
+        .form-label {
+            font-weight: 500; font-size: 13px;
+            color: var(--body-strong);
+            margin-bottom: 6px;
+        }
+
+        /* ===== Badges ===== */
+        .badge {
+            font-weight: 500; font-size: 12px;
+            letter-spacing: 0.02em;
+            border-radius: 9999px;
+            padding: 5px 12px;
+        }
+        .badge-pending { background: #fef3c7; color: #92400e; }
+        .badge-partial { background: #e0e7ff; color: #3730a3; }
+        .badge-completed { background: #dcfce7; color: #166534; }
+
+        /* ===== Text Colors ===== */
+        .text-success { color: var(--semantic-success) !important; }
+        .text-warning { color: #d97706 !important; }
+        .text-danger { color: var(--semantic-error) !important; }
+        .text-muted { color: var(--muted) !important; }
+
+        /* ===== Links ===== */
+        a.text-decoration-none:not(.btn):not(.nav-link) {
+            color: var(--ink);
+            transition: color 0.15s;
+        }
+        a.text-decoration-none:not(.btn):not(.nav-link):hover {
+            color: var(--ink-active);
+        }
+        .fw-bold { font-weight: 600 !important; }
+
+        /* ===== Timeline ===== */
+        .timeline {
+            border-left: 2px solid var(--hairline);
+            padding-left: 24px;
+            margin-left: 12px;
+        }
+        .timeline-item {
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -30px; top: 4px;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: var(--ink);
+        }
+
+        /* ===== Flash Messages ===== */
+        .flash-msg {
+            position: fixed;
+            top: 20px; right: 20px;
+            z-index: 9999;
+            min-width: 300px;
+        }
+        .flash-msg .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+
+        /* ===== Modals ===== */
+        .modal-content {
+            border-radius: 20px;
+            border: 1px solid var(--hairline);
+            overflow: hidden;
+        }
+        .modal-header {
+            border-bottom: 1px solid var(--hairline-soft);
+            padding: 20px 24px;
+        }
+        .modal-header.bg-success { background: var(--semantic-success) !important; }
+        .modal-header.bg-warning { background: #f59e0b !important; }
+        .modal-body { padding: 20px; }
+
+        /* ===== Decorative Gradient Orbs ===== */
+        .gradient-orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .gradient-orb.mint {
+            width: 300px; height: 300px;
+            background: var(--gradient-mint);
+            top: 10%; right: 5%;
+        }
+        .gradient-orb.peach {
+            width: 250px; height: 250px;
+            background: var(--gradient-peach);
+            bottom: 15%; right: 15%;
+        }
+        .gradient-orb.lavender {
+            width: 200px; height: 200px;
+            background: var(--gradient-lavender);
+            top: 60%; left: 5%;
+        }
+
+        /* ===== Responsive ===== */
         @media (max-width: 768px) {
             .sidebar {
-                width: 100%;
-                height: auto;
+                width: 100%; height: auto;
                 position: relative;
                 padding-bottom: 8px;
             }
@@ -117,37 +416,93 @@
             .sidebar .nav-item { flex: none; }
             .main-content {
                 margin-left: 0;
-                padding: 12px;
+                padding: 16px;
             }
+            .page-title { font-size: 24px; }
             .matrix-table input.form-control { width: 46px; }
+            .stat-card .stat-value { font-size: 28px; }
         }
 
-        /* 发货清单打印样式 */
+        /* ===== Print ===== */
         @media print {
             .sidebar, .no-print { display: none !important; }
             .main-content { margin-left: 0; padding: 0; }
-            .card { box-shadow: none; border: 1px solid #ddd; }
+            .card { box-shadow: none; border: 1px solid var(--hairline); }
         }
 
-        .timeline { border-left: 2px solid #e9ecef; padding-left: 20px; margin-left: 10px; }
-        .timeline-item { margin-bottom: 16px; position: relative; }
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -26px;
-            top: 4px;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #4361ee;
+        /* ===== Custom Modal Overlay (replaces Bootstrap modal) ===== */
+        .custom-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
-        .flash-msg { position: fixed; top: 16px; right: 16px; z-index: 9999; min-width: 280px; }
+        .custom-modal-overlay.active { display: flex; }
+        .custom-modal-box {
+            background: var(--surface-card, #fff);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: modalSlideIn 0.2s ease-out;
+            position: relative;
+            z-index: 10001;
+        }
+        .custom-modal-box.modal-sm { max-width: 400px; }
+        @keyframes modalSlideIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.97); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .custom-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--hairline, #e7e5e4);
+            flex-shrink: 0;
+        }
+        .custom-modal-header h5, .custom-modal-header h6 {
+            margin: 0;
+            font-family: var(--font-display, serif);
+            font-weight: 400;
+        }
+        .custom-modal-header.bg-success { background: var(--semantic-success, #16a34a); color: #fff; border-color: transparent; }
+        .custom-modal-header.bg-warning { background: #f59e0b; color: #fff; border-color: transparent; }
+        .custom-modal-close {
+            width: 32px; height: 32px;
+            border: none; background: rgba(0,0,0,0.06);
+            border-radius: 50%; font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            color: inherit; transition: background 0.15s;
+            flex-shrink: 0;
+        }
+        .custom-modal-close:hover { background: rgba(0,0,0,0.12); }
+        .custom-modal-body {
+            padding: 0;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .custom-modal-body.p-20 { padding: 20px; }
+
     </style>
 </head>
 <body>
-    <!-- 侧边栏 -->
+    <!-- Decorative gradient orbs -->
+    <div class="gradient-orb mint"></div>
+    <div class="gradient-orb peach"></div>
+    <div class="gradient-orb lavender"></div>
+
+    <!-- Sidebar -->
     <nav class="sidebar">
-        <div class="brand"><i class="bi bi-box-seam"></i> 批发管理</div>
+        <div class="brand"><i class="bi bi-box-seam"></i>批发管理</div>
         <ul class="nav flex-column mt-2">
             <li class="nav-item">
                 <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('dashboard') }}">
@@ -166,15 +521,15 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link {% if request.path.startswith('/products') %}active{% endif %}" href="{{ url_for('product_list') }}">
-                    <i class="bi bi-gear"></i> 产品配置
+                    <i class="bi bi-palette"></i> 产品配置
                 </a>
             </li>
         </ul>
     </nav>
 
-    <!-- 主内容 -->
+    <!-- Main Content -->
     <div class="main-content">
-        <!-- 闪存消息 -->
+        <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <div class="flash-msg">
@@ -192,6 +547,126 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- html5-qrcode barcode scanning library -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script>
+    /* ===== Barcode Scanner ===== */
+    var _scanner = null;
+    var _scannerCallback = null;
+
+    function detectLogisticsCompany(tracking) {
+        if (!tracking) return '';
+        var t = tracking.toUpperCase().trim();
+        if (/^SF/.test(t)) return '顺丰';
+        if (/^YT/.test(t)) return '圆通';
+        if (/^JD(V|\d)/.test(t)) return '京东';
+        if (/^JT\d/.test(t) || /^J&T/.test(t)) return '极兔';
+        if (/^ZTO/.test(t) || /^7[5368]\d{11,}/.test(t)) return '中通';
+        if (/^STO/.test(t) || /^77\d{11,}/.test(t)) return '申通';
+        if (/^(31|37|43)\d{11,}/.test(t)) return '韵达';
+        if (/^E[M]?S/.test(t) || /^E\d{12,}/.test(t)) return 'EMS';
+        if (/^DP(K)?/.test(t)) return '德邦';
+        if (/^YD/.test(t)) return '韵达';
+        if (/^ANE/.test(t) || /^A\d{12,}/.test(t)) return '安能';
+        if (/^DBL/.test(t)) return '德邦';
+        if (/^CN/.test(t)) return '邮政';
+        return '';
+    }
+
+    function startScanner(targetId, onResult) {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('您的浏览器不支持相机扫码，请手动输入单号');
+            return;
+        }
+        _scannerCallback = onResult;
+        var overlay = document.getElementById('scannerOverlay');
+        overlay.style.display = 'flex';
+
+        if (_scanner) { _scanner.clear().catch(function(){}); }
+
+        _scanner = new Html5Qrcode('scannerView');
+        _scanner.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: { width: 280, height: 120 }, aspectRatio: 1.5 },
+            function(decodedText) {
+                stopScanner();
+                if (_scannerCallback) _scannerCallback(decodedText);
+            },
+            function() {}
+        ).catch(function(err) {
+            console.error('Camera error:', err);
+            alert('无法打开相机：' + err);
+            stopScanner();
+        });
+    }
+
+    function stopScanner() {
+        var overlay = document.getElementById('scannerOverlay');
+        overlay.style.display = 'none';
+        if (_scanner) {
+            _scanner.stop().then(function() { _scanner.clear().catch(function(){}); }).catch(function(){});
+            _scanner = null;
+        }
+    }
+
+    function scanTracking(companyId, trackingId) {
+        startScanner('scannerView', function(code) {
+            document.getElementById(trackingId).value = code;
+            var company = detectLogisticsCompany(code);
+            if (company) {
+                document.getElementById(companyId).value = company;
+            }
+        });
+    }
+    </script>
+
+    <!-- Scanner overlay (shared across all pages) -->
+    <div id="scannerOverlay" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);flex-direction:column;align-items:center;justify-content:center;">
+        <div style="position:absolute;top:16px;left:16px;right:16px;display:flex;justify-content:space-between;align-items:center;z-index:1;">
+            <span style="color:#fff;font-size:15px;font-weight:500;">扫描快递单号</span>
+            <button onclick="stopScanner()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;">✕</button>
+        </div>
+        <div id="scannerView" style="width:100%;max-width:400px;height:300px;border-radius:16px;overflow:hidden;"></div>
+        <p style="color:rgba(255,255,255,0.6);font-size:13px;margin-top:16px;">将条形码/二维码置于框内，自动识别</p>
+    </div>
+
+
+    <script>
+    /* ===== Custom Modal System ===== */
+    function openModal(id) {
+        var overlay = document.getElementById(id);
+        if (!overlay) return;
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeModalById(id) {
+        var overlay = document.getElementById(id);
+        if (!overlay) return;
+        overlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    function closeCurrentModal(btn) {
+        var overlay = btn.closest('.custom-modal-overlay');
+        if (overlay) {
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+    function closeTopModal() {
+        var overlays = document.querySelectorAll('.custom-modal-overlay.active');
+        if (overlays.length > 0) {
+            var top = overlays[overlays.length - 1];
+            top.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    }
+    // Close on Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeTopModal();
+    });
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

@@ -1,16 +1,16 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}{{ '编辑客户' if customer else '添加客户' }}{% endblock %}
 {% block content %}
 
-<h4 class="mb-4">
-    <i class="bi bi-{{ 'pencil' if customer else 'person-plus' }} me-2"></i>
+<h1 class="page-title">
+    <i class="bi bi-{{ 'pencil' if customer else 'person-plus' }}"></i>
     {{ '编辑客户' if customer else '添加客户' }}
-</h4>
+</h1>
 
 <div class="row justify-content-center">
     <div class="col-md-6">
         <div class="card">
-            <div class="card-body">
+            <div class="card-body p-4">
                 <form method="POST">
                     <div class="mb-3">
                         <label class="form-label">客户名称 <span class="text-danger">*</span></label>
@@ -25,7 +25,7 @@
                                placeholder="例如：55">
                         <div class="form-text">创建订单时会自动填入，可手动修改</div>
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-4">
                         <label class="form-label">备注</label>
                         <textarea name="notes" class="form-control" rows="2"
                                   placeholder="其他信息...">{{ customer.notes if customer else '' }}</textarea>

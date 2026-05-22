@@ -56,19 +56,19 @@
 <!-- 数量汇总 -->
 <div class="row g-3 mb-4">
     <div class="col-4">
-        <div class="card stat-card primary p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#orderMatrixModal">
+        <div class="card stat-card primary p-3" style="cursor:pointer" onclick="openModal('modalOrderMatrix')">
             <div class="stat-label">订单总数 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:12px"></i></div>
             <div class="stat-value">{{ order.total_qty }}</div>
         </div>
     </div>
     <div class="col-4">
-        <div class="card stat-card success p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#shippedModal">
+        <div class="card stat-card success p-3" style="cursor:pointer" onclick="openModal('modalShipped')">
             <div class="stat-label">已发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:12px"></i></div>
             <div class="stat-value">{{ order.total_shipped }}</div>
         </div>
     </div>
     <div class="col-4">
-        <div class="card stat-card {{ 'warning' if order.total_pending > 0 else 'success' }} p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#pendingModal">
+        <div class="card stat-card {{ 'warning' if order.total_pending > 0 else 'success' }} p-3" style="cursor:pointer" onclick="openModal('modalPending')">
             <div class="stat-label">待发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:12px"></i></div>
             <div class="stat-value">{{ order.total_pending }}</div>
         </div>
@@ -204,12 +204,11 @@
 {% endif %}
 
 <!-- ====== 模态层：订单总数总览 ====== -->
-<div class="modal fade" id="orderMatrixModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
+<div id="modalOrderMatrix" class="custom-modal-overlay" onclick="if(event.target===this)closeTopModal()">
+    <div class="custom-modal-box">
+        <div class="custom-modal-header">
                 <h5 class="modal-title"><i class="bi bi-grid-3x3-gap me-2"></i>订单总览 — {{ order.total_qty }} 双</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="custom-modal-close" onclick="closeCurrentModal(this)">✕</button>
             </div>
             <div class="modal-body p-0">
                 <table class="table table-bordered matrix-table mb-0">
@@ -263,12 +262,11 @@
 </div>
 
 <!-- ====== 模态层：已发货总览 ====== -->
-<div class="modal fade" id="shippedModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
+<div id="modalShipped" class="custom-modal-overlay" onclick="if(event.target===this)closeTopModal()">
+    <div class="custom-modal-box">
+        <div class="custom-modal-header bg-success">
                 <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>已发货总览 — {{ order.total_shipped }} 双</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="custom-modal-close" onclick="closeCurrentModal(this)">✕</button>
             </div>
             <div class="modal-body p-0">
                 <table class="table table-bordered matrix-table mb-0">
@@ -317,12 +315,11 @@
 </div>
 
 <!-- ====== 模态层：待发货总览 ====== -->
-<div class="modal fade" id="pendingModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
+<div id="modalPending" class="custom-modal-overlay" onclick="if(event.target===this)closeTopModal()">
+    <div class="custom-modal-box">
+        <div class="custom-modal-header bg-warning">
                 <h5 class="modal-title"><i class="bi bi-hourglass-split me-2"></i>待发货总览 — {{ order.total_pending }} 双</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="custom-modal-close" onclick="closeCurrentModal(this)">✕</button>
             </div>
             <div class="modal-body p-0">
                 <table class="table table-bordered matrix-table mb-0">
@@ -371,12 +368,11 @@
 </div>
 
 <!-- ====== 模态层：单次发货详情（JS动态填充） ====== -->
-<div class="modal fade" id="shipmentDetailModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="shipmentModalTitle"><i class="bi bi-box-seam me-2"></i>发货详情</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<div id="modalShipmentDetail" class="custom-modal-overlay" onclick="if(event.target===this)closeTopModal()">
+    <div class="custom-modal-box">
+        <div class="custom-modal-header bg-success">
+            <h5 id="shipmentModalTitle"><i class="bi bi-box-seam me-2"></i>发货详情</h5>
+                <button type="button" class="custom-modal-close" onclick="closeCurrentModal(this)">✕</button>
             </div>
             <div class="modal-body p-0" id="shipmentModalBody"></div>
         </div>
@@ -421,7 +417,7 @@ function showShipmentDetail(key) {
     if (data.notes) html += '<div class="p-2 text-muted"><small>备注：' + data.notes + '</small></div>';
     if (data.logistics) html += '<div class="p-2"><small><i class="bi bi-truck me-1"></i>物流：' + data.logistics + '</small></div>';
     document.getElementById('shipmentModalBody').innerHTML = html;
-    new bootstrap.Modal(document.getElementById('shipmentDetailModal')).show();
+    openModal('modalShipmentDetail');
 }
 
 var logisticsShipmentId = null;
@@ -429,7 +425,7 @@ function editLogistics(sid, company, tracking) {
     logisticsShipmentId = sid;
     document.getElementById('logiCompany').value = company;
     document.getElementById('logiTracking').value = tracking;
-    new bootstrap.Modal(document.getElementById('logisticsModal')).show();
+    openModal('modalLogistics');
 }
 function saveLogistics() {
     if (!logisticsShipmentId) return;
@@ -437,15 +433,19 @@ function saveLogistics() {
     form.action = '/orders/{{ order.id }}/shipments/' + logisticsShipmentId + '/logistics';
     form.submit();
 }
+
+
+
+
+
 </script>
 
 <!-- ====== 模态层：补填物流 ====== -->
-<div class="modal fade" id="logisticsModal" tabindex="-1">
-    <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-            <div class="modal-header">
+<div id="modalLogistics" class="custom-modal-overlay" onclick="if(event.target===this)closeTopModal()">
+    <div class="custom-modal-box modal-sm">
+        <div class="custom-modal-header">
                 <h6 class="modal-title"><i class="bi bi-truck me-1"></i>物流信息</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="custom-modal-close" onclick="closeCurrentModal(this)">✕</button>
             </div>
             <div class="modal-body">
                 <form id="logisticsForm" method="POST" onsubmit="saveLogistics(); return false;">
@@ -455,7 +455,10 @@ function saveLogistics() {
                     </div>
                     <div class="mb-3">
                         <label class="form-label small">快递单号</label>
-                        <input type="text" id="logiTracking" name="tracking_number" class="form-control form-control-sm" placeholder="如：SF1234567890">
+                        <div class="input-group input-group-sm">
+                        <input type="text" id="logiTracking" name="tracking_number" class="form-control" placeholder="扫码或手动输入">
+                        <button type="button" class="btn btn-outline-secondary" onclick="scanTracking('logiCompany', 'logiTracking')" title="扫码识别"><i class="bi bi-camera"></i></button>
+                    </div>
                     </div>
                     <button type="submit" class="btn btn-primary btn-sm w-100">保存</button>
                 </form>

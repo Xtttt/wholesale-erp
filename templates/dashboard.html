@@ -1,36 +1,36 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}首页 - 批发订单管理{% endblock %}
 {% block content %}
 
-<h4 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>首页概览</h4>
+<h1 class="page-title"><i class="bi bi-speedometer2"></i>首页概览</h1>
 
 <!-- 统计卡片 -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-        <a href="{{ url_for('customer_list') }}" class="text-decoration-none text-dark">
-            <div class="card stat-card primary p-3">
-                <div class="stat-label">客户数 <i class="bi bi-box-arrow-up-right" style="font-size:10px;color:#888"></i></div>
+        <a href="{{ url_for('customer_list') }}" class="text-decoration-none">
+            <div class="stat-card primary">
+                <div class="stat-label">客户数 <i class="bi bi-box-arrow-up-right" style="font-size:10px;color:var(--muted-soft)"></i></div>
                 <div class="stat-value">{{ customers_count }}</div>
             </div>
         </a>
     </div>
     <div class="col-6 col-md-3">
-        <a href="{{ url_for('order_list') }}" class="text-decoration-none text-dark">
-            <div class="card stat-card primary p-3">
-                <div class="stat-label">订单数 <i class="bi bi-box-arrow-up-right" style="font-size:10px;color:#888"></i></div>
+        <a href="{{ url_for('order_list') }}" class="text-decoration-none">
+            <div class="stat-card primary">
+                <div class="stat-label">订单数 <i class="bi bi-box-arrow-up-right" style="font-size:10px;color:var(--muted-soft)"></i></div>
                 <div class="stat-value">{{ orders_total }}</div>
             </div>
         </a>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card stat-card success p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#globalShippedModal">
-            <div class="stat-label">已发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:10px;color:#2ec4a6"></i></div>
+        <div class="stat-card success" style="cursor:pointer" onclick="openModal('modalDashShipped')">
+            <div class="stat-label">已发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:10px;color:var(--semantic-success)"></i></div>
             <div class="stat-value">{{ total_shipped }}</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card stat-card warning p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#globalPendingModal">
-            <div class="stat-label">待发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:10px;color:#f4a261"></i></div>
+        <div class="stat-card warning" style="cursor:pointer" onclick="openModal('modalDashPending')">
+            <div class="stat-label">待发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:10px;color:#d97706"></i></div>
             <div class="stat-value">{{ total_pending }}</div>
         </div>
     </div>
@@ -45,7 +45,7 @@
             <div class="card-body p-0">
                 {% if pending_orders %}
                 <table class="table table-hover mb-0">
-                    <thead class="table-light">
+                    <thead>
                         <tr>
                             <th>订单号</th>
                             <th>客户</th>
@@ -58,14 +58,14 @@
                     <tbody>
                         {% for o in pending_orders %}
                         <tr>
-                            <td><a href="{{ url_for('order_detail', order_id=o.id) }}" class="text-decoration-none">{{ o.order_number }}</a></td>
+                            <td><a href="{{ url_for('order_detail', order_id=o.id) }}" class="text-decoration-none fw-bold">{{ o.order_number }}</a></td>
                             <td>{{ o.customer.name }}</td>
                             <td>{{ o.product.name }}</td>
                             <td>
                                 <span class="text-success fw-bold">{{ o.total_shipped }}</span>
-                                <span class="text-muted">/</span>
+                                <span class="text-muted"> / </span>
                                 <span>{{ o.total_qty }}</span>
-                                <span class="text-muted">/</span>
+                                <span class="text-muted"> / </span>
                                 <span class="text-warning fw-bold">{{ o.total_pending }}</span>
                             </td>
                             <td><small class="text-muted">{{ o.created_at.strftime('%Y-%m-%d') }}</small></td>
@@ -77,9 +77,9 @@
                     </tbody>
                 </table>
                 {% else %}
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-check-circle-fill fs-1 text-success"></i>
-                    <p class="mt-2">所有订单已处理完毕 🎉</p>
+                <div class="text-center py-5">
+                    <i class="bi bi-check-circle-fill fs-1" style="color:var(--semantic-success)"></i>
+                    <p class="mt-2 text-muted">所有订单已处理完毕</p>
                 </div>
                 {% endif %}
             </div>
@@ -88,9 +88,11 @@
 
     <div class="col-md-4">
         <div class="card mb-3">
-            <div class="card-body text-center">
-                <i class="bi bi-plus-circle fs-1 text-primary"></i>
-                <p class="mt-2 mb-0 fw-bold">快速操作</p>
+            <div class="card-body text-center py-4">
+                <div style="width:56px;height:56px;border-radius:16px;background:var(--surface-strong);display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
+                    <i class="bi bi-plus-circle fs-4" style="color:var(--ink)"></i>
+                </div>
+                <p class="mb-0 fw-bold" style="font-size:15px;">快速操作</p>
                 <div class="d-grid gap-2 mt-3">
                     <a href="{{ url_for('order_add') }}" class="btn btn-primary btn-sm">
                         <i class="bi bi-cart-plus me-1"></i> 新建订单
@@ -104,17 +106,16 @@
     </div>
 </div>
 
-<!-- ====== 全局已发货矩阵 ====== -->
-<div class="modal fade" id="globalShippedModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
+<!-- 全局已发货矩阵 -->
+<div id="modalDashShipped" class="custom-modal-overlay" onclick="if(event.target===this)closeTopModal()">
+    <div class="custom-modal-box">
+        <div class="custom-modal-header bg-success">
                 <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>全部已发货总览 — {{ total_shipped }} 双</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="custom-modal-close" onclick="closeCurrentModal(this)">✕</button>
             </div>
             <div class="modal-body p-0">
                 <table class="table table-bordered matrix-table mb-0">
-                    <thead class="table-light">
+                    <thead>
                         <tr><th style="width:80px">颜色</th>{% for s in sizes %}<th>{{ s.size_label }}</th>{% endfor %}<th>小计</th></tr>
                     </thead>
                     <tbody>
@@ -131,7 +132,7 @@
                         </tr>
                         {% endfor %}
                     </tbody>
-                    <tfoot class="table-light fw-bold">
+                    <tfoot>
                         <tr><td>合计</td>
                             {% for s in sizes %}
                             {% set ct = namespace(q=0) %}{% for c in colors %}{% set ct.q = ct.q + shipped_matrix.get(c.name, {}).get(s.size_label, 0) %}{% endfor %}
@@ -145,17 +146,16 @@
     </div>
 </div>
 
-<!-- ====== 全局待发货矩阵 ====== -->
-<div class="modal fade" id="globalPendingModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
+<!-- 全局待发货矩阵 -->
+<div id="modalDashPending" class="custom-modal-overlay" onclick="if(event.target===this)closeTopModal()">
+    <div class="custom-modal-box">
+        <div class="custom-modal-header bg-warning">
                 <h5 class="modal-title"><i class="bi bi-hourglass-split me-2"></i>全部待发货总览 — {{ total_pending }} 双</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="custom-modal-close" onclick="closeCurrentModal(this)">✕</button>
             </div>
             <div class="modal-body p-0">
                 <table class="table table-bordered matrix-table mb-0">
-                    <thead class="table-light">
+                    <thead>
                         <tr><th style="width:80px">颜色</th>{% for s in sizes %}<th>{{ s.size_label }}</th>{% endfor %}<th>小计</th></tr>
                     </thead>
                     <tbody>
@@ -172,7 +172,7 @@
                         </tr>
                         {% endfor %}
                     </tbody>
-                    <tfoot class="table-light fw-bold">
+                    <tfoot>
                         <tr><td>合计</td>
                             {% for s in sizes %}
                             {% set ct = namespace(q=0) %}{% for c in colors %}{% set ct.q = ct.q + pending_matrix.get(c.name, {}).get(s.size_label, 0) %}{% endfor %}
@@ -183,7 +183,6 @@
                 </table>
             </div>
         </div>
-    </div>
 </div>
 
 {% endblock %}

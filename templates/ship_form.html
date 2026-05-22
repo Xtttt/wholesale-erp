@@ -1,20 +1,33 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}发货 - {{ order.order_number }}{% endblock %}
 {% block content %}
 
-<h4 class="mb-4"><i class="bi bi-truck me-2"></i>发货 — {{ order.order_number }}</h4>
+<h1 class="page-title"><i class="bi bi-truck"></i>发货 — {{ order.order_number }}</h1>
 
 <div class="card mb-3">
     <div class="card-body">
-        <strong>客户：</strong>{{ order.customer.name }} &nbsp;|&nbsp;
-        <strong>产品：</strong>{{ order.product.name }} &nbsp;|&nbsp;
-        <strong>待发：</strong><span class="text-warning fw-bold fs-5">{{ order.total_pending }}</span> 双
+        <div class="d-flex flex-wrap gap-3 align-items-center">
+            <div>
+                <small class="text-muted" style="font-size:11px;letter-spacing:0.05em;text-transform:uppercase;">客户</small>
+                <div class="fw-bold">{{ order.customer.name }}</div>
+            </div>
+            <div style="width:1px;height:32px;background:var(--hairline);"></div>
+            <div>
+                <small class="text-muted" style="font-size:11px;letter-spacing:0.05em;text-transform:uppercase;">产品</small>
+                <div class="fw-bold">{{ order.product.name }}</div>
+            </div>
+            <div style="width:1px;height:32px;background:var(--hairline);"></div>
+            <div>
+                <small class="text-muted" style="font-size:11px;letter-spacing:0.05em;text-transform:uppercase;">待发</small>
+                <div class="fw-bold text-warning" style="font-size:20px;">{{ order.total_pending }} 双</div>
+            </div>
+        </div>
     </div>
 </div>
 
 <div class="card">
     <div class="card-header">
-        <strong>📦 本次发货明细</strong>
+        <strong>本次发货明细</strong>
         <small class="text-muted ms-2">（只显示有未发数量的行，输 0 或留空表示不发货）</small>
     </div>
     <div class="card-body">
@@ -26,11 +39,14 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">物流公司</label>
-                    <input type="text" name="logistics_company" class="form-control" placeholder="如：顺丰、圆通">
+                    <input type="text" name="logistics_company" id="shipLogiCompany" class="form-control" placeholder="如：顺丰、圆通">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">快递单号</label>
-                    <input type="text" name="tracking_number" class="form-control" placeholder="可选，后续可补填">
+                    <div class="input-group">
+                        <input type="text" name="tracking_number" id="shipTracking" class="form-control" placeholder="扫码或手动输入">
+                        <button type="button" class="btn btn-outline-secondary" onclick="scanTracking('shipLogiCompany', 'shipTracking')" title="扫码识别"><i class="bi bi-camera"></i> 扫码</button>
+                    </div>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">备注</label>
@@ -39,7 +55,7 @@
             </div>
 
             <table class="table table-bordered table-sm matrix-table">
-                <thead class="table-light">
+                <thead>
                     <tr>
                         <th>颜色</th>
                         <th>尺码</th>
@@ -60,7 +76,7 @@
                             {{ line.color }}
                         </td>
                         <td>{{ line.size }}</td>
-                        <td><span class="badge bg-light text-dark">#{{ line.batch }}</span></td>
+                        <td><span class="badge" style="background:var(--surface-strong);color:var(--ink);">#{{ line.batch }}</span></td>
                         <td class="text-warning fw-bold">{{ line.pending_qty }}</td>
                         <td>
                             <input type="number" class="form-control" min="0"

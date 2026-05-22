@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% block title %}产品配置{% endblock %}
 {% block content %}
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0"><i class="bi bi-gear me-2"></i>产品配置</h4>
-    <a href="{{ url_for('product_add') }}" class="btn btn-primary btn-sm">
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="page-title mb-0"><i class="bi bi-palette"></i>产品配置</h1>
+    <a href="{{ url_for('product_add') }}" class="btn btn-primary">
         <i class="bi bi-plus-lg me-1"></i> 添加产品
     </a>
 </div>
@@ -15,33 +15,37 @@
     <div class="col-md-6 col-lg-4">
         <div class="card h-100">
             <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <h5 class="card-title">{{ p.name }}</h5>
+                <div class="d-flex justify-content-between align-items-start">
+                    <h5 class="card-title mb-0" style="font-family:var(--font-display);font-weight:400;font-size:20px;">{{ p.name }}</h5>
                     {% if p.is_active %}
                     <span class="badge badge-completed">启用</span>
                     {% else %}
-                    <span class="badge bg-secondary">停用</span>
+                    <span class="badge" style="background:var(--surface-strong);color:var(--muted);">停用</span>
                     {% endif %}
                 </div>
-                <div class="mt-2">
-                    <small class="text-muted">颜色：</small>
+                <div class="mt-3">
+                    <small class="text-muted" style="font-size:11px;letter-spacing:0.05em;text-transform:uppercase;">颜色</small>
+                    <div class="mt-1">
                     {% for c in p.colors.all() %}
-                    <span class="badge me-1" style="background:{{ c.hex_code }};color:{% if c.hex_code|replace('#','') < '888888' %}white{% else %}black{% endif %}">
+                    <span class="badge me-1" style="background:{{ c.hex_code }};color:{% if c.hex_code|replace('#','') < '888888' %}white{% else %}black{% endif %};border-radius:6px;">
                         {{ c.name }}
                     </span>
                     {% endfor %}
+                    </div>
                 </div>
-                <div class="mt-1">
-                    <small class="text-muted">尺码：</small>
+                <div class="mt-2">
+                    <small class="text-muted" style="font-size:11px;letter-spacing:0.05em;text-transform:uppercase;">尺码</small>
+                    <div class="mt-1">
                     {% for s in p.get_sorted_sizes() %}
-                    <span class="badge bg-light text-dark me-1">{{ s.size_label }}</span>
+                    <span class="badge me-1" style="background:var(--surface-strong);color:var(--ink);border-radius:6px;">{{ s.size_label }}</span>
                     {% endfor %}
+                    </div>
                 </div>
                 <div class="mt-2">
                     <small class="text-muted">订单数：{{ p.orders.count() }}</small>
                 </div>
             </div>
-            <div class="card-footer bg-transparent">
+            <div class="card-footer" style="background:transparent;border-top:1px solid var(--hairline-soft);">
                 <a href="{{ url_for('product_edit', product_id=p.id) }}" class="btn btn-sm btn-outline-secondary">
                     <i class="bi bi-pencil me-1"></i> 编辑
                 </a>
@@ -51,9 +55,14 @@
     {% endfor %}
 </div>
 {% else %}
-<div class="text-center py-5 text-muted">
-    <i class="bi bi-box fs-1"></i>
-    <p class="mt-2">暂无产品配置</p>
+<div class="text-center py-5">
+    <div style="width:64px;height:64px;border-radius:50%;background:var(--surface-strong);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px;">
+        <i class="bi bi-box fs-3" style="color:var(--muted-soft)"></i>
+    </div>
+    <p class="text-muted mb-3">暂无产品配置</p>
+    <a href="{{ url_for('product_add') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg me-1"></i> 添加产品
+    </a>
 </div>
 {% endif %}
 
