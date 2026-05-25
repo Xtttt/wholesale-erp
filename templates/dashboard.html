@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+{% block title %}首页 - 批发订单管理{% endblock %}
+{% block content %}
+
+<h4 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>首页概览</h4>
+
+<!-- 统计卡片 -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('customer_list') }}" class="text-decoration-none text-dark">
+            <div class="card stat-card primary p-3">
+                <div class="stat-label">客户数 <i class="bi bi-box-arrow-up-right" style="font-size:10px"></i></div>
+                <div class="stat-value">{{ customers_count }}</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="{{ url_for('order_list') }}" class="text-decoration-none text-dark">
+            <div class="card stat-card primary p-3">
+                <div class="stat-label">订单数 <i class="bi bi-box-arrow-up-right" style="font-size:10px"></i></div>
+                <div class="stat-value">{{ orders_total }}</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card success p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#globalShippedModal">
+            <div class="stat-label">已发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:10px"></i></div>
+            <div class="stat-value">{{ total_shipped }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card warning p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#globalPendingModal">
+            <div class="stat-label">待发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:10px"></i></div>
+            <div class="stat-value">{{ total_pending }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong><i class="bi bi-clock-history me-2"></i>待处理订单</strong>
+            </div>
+            <div class="card-body p-0">
+                {% if pending_orders %}
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>订单号</th>
+                            <th>客户</th>
+                            <th>产品</th>
+                            <th>总数/已发/待发</th>
+                            <th>下单时间</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in pending_orders %}
+                        <tr class="dashboard-order-row" data-order-url="{{ url_for('order_detail', order_id=o.id) }}"
+                            onclick="if (!event.target.closest('a, button')) window.location.href=this.dataset.orderUrl">
+                            <td><a href="{{ url_for('order_detail', order_id=o.id) }}" class="text-decoration-none">{{ o.order_number }}</a></td>
+                            <td>
+                                <a href="{{ url_for('customer_detail', customer_id=o.customer.id) }}" class="text-decoration-none customer-link"
+                                   onclick="event.stopPropagation()">{{ o.customer.name }}</a>
+                            </td>
+                            <td>{{ o.product.name }}</td>
+                            <td>
+                                <span class="text-success fw-bold">{{ o.total_shipped }}</span>
+                                <span class="text-muted">/</span>
+                                <span>{{ o.total_qty }}</span>
+                                <span class="text-muted">/</span>
+                                <span class="text-warning fw-bold">{{ o.total_pending }}</span>
+                            </td>
+                            <td><small class="text-muted">{{ o.created_at.strftime('%Y-%m-%d') }}</small></td>
+                            <td>
+                                <a href="{{ url_for('order_ship', order_id=o.id) }}" class="btn btn-sm btn-warning">发货</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+                    <p class="mt-2">所有订单已处理完毕 🎉</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== 全局已发货矩阵 ====== -->
+<div class="modal fade" id="globalShippedModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>全部已发货总览 — {{ total_shipped }} 双</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-bordered matrix-table mb-0">
+                    <thead class="table-light">
+                        <tr><th style="width:80px">颜色</th>{% for s in sizes %}<th>{{ s.size_label }}</th>{% endfor %}<th>小计</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for color in colors %}
+                        <tr>
+                            <td class="color-label"><span class="color-dot" style="background:{{ color.hex_code }}"></span>{{ color.name }}</td>
+                            {% set row_total = namespace(q=0) %}
+                            {% for s in sizes %}
+                            {% set q = shipped_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set row_total.q = row_total.q + q %}
+                            <td>{% if q > 0 %}<strong class="text-success">{{ q }}</strong>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+                            {% endfor %}
+                            <td><strong>{{ row_total.q }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr><td>合计</td>
+                            {% for s in sizes %}
+                            {% set ct = namespace(q=0) %}{% for c in colors %}{% set ct.q = ct.q + shipped_matrix.get(c.name, {}).get(s.size_label, 0) %}{% endfor %}
+                            <td>{{ ct.q }}</td>{% endfor %}
+                            <td>{{ total_shipped }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== 全局待发货矩阵 ====== -->
+<div class="modal fade" id="globalPendingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="bi bi-hourglass-split me-2"></i>全部待发货总览 — {{ total_pending }} 双</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-bordered matrix-table mb-0">
+                    <thead class="table-light">
+                        <tr><th style="width:80px">颜色</th>{% for s in sizes %}<th>{{ s.size_label }}</th>{% endfor %}<th>小计</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for color in colors %}
+                        <tr>
+                            <td class="color-label"><span class="color-dot" style="background:{{ color.hex_code }}"></span>{{ color.name }}</td>
+                            {% set row_total = namespace(q=0) %}
+                            {% for s in sizes %}
+                            {% set q = pending_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set row_total.q = row_total.q + q %}
+                            <td>{% if q > 0 %}<strong class="text-danger">{{ q }}</strong>{% else %}<span class="text-muted">-</span>{% endif %}</td>
+                            {% endfor %}
+                            <td><strong>{{ row_total.q }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr><td>合计</td>
+                            {% for s in sizes %}
+                            {% set ct = namespace(q=0) %}{% for c in colors %}{% set ct.q = ct.q + pending_matrix.get(c.name, {}).get(s.size_label, 0) %}{% endfor %}
+                            <td>{{ ct.q }}</td>{% endfor %}
+                            <td>{{ total_pending }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

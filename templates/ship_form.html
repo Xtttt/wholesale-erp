@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}发货 - {{ order.order_number }}{% endblock %}
+{% block content %}
+
+<h4 class="mb-4"><i class="bi bi-truck me-2"></i>发货 — {{ order.order_number }}</h4>
+
+<div class="card mb-3">
+    <div class="card-body">
+        <strong>客户：</strong>{{ order.customer.name }} &nbsp;|&nbsp;
+        <strong>产品：</strong>{{ order.product.name }} &nbsp;|&nbsp;
+        <strong>待发：</strong><span class="text-warning fw-bold fs-5">{{ order.total_pending }}</span> 双
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <strong>📦 本次发货明细</strong>
+        <small class="text-muted ms-2">（只显示有未发数量的行，输 0 或留空表示不发货）</small>
+    </div>
+    <div class="card-body">
+        <form method="POST">
+            <div class="row g-3 mb-3">
+                <div class="col-md-3">
+                    <label class="form-label">发货日期</label>
+                    <input type="date" name="ship_date" class="form-control" value="{{ now.strftime('%Y-%m-%d') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">物流公司</label>
+                    <input type="text" name="logistics_company" class="form-control" placeholder="如：顺丰、圆通">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">快递单号</label>
+                    <input type="text" name="tracking_number" class="form-control" placeholder="可选，后续可补填">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">备注</label>
+                    <input type="text" name="notes" class="form-control" placeholder="其他备注...">
+                </div>
+            </div>
+
+            <table class="table table-bordered table-sm matrix-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>颜色</th>
+                        <th>尺码</th>
+                        <th>批次</th>
+                        <th>待发数量</th>
+                        <th>本次发货</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for line in pending_lines %}
+                    <tr>
+                        <td>
+                            {% for color in colors %}
+                            {% if color.name == line.color %}
+                            <span class="color-dot" style="background:{{ color.hex_code }}"></span>
+                            {% endif %}
+                            {% endfor %}
+                            {{ line.color }}
+                        </td>
+                        <td>{{ line.size }}</td>
+                        <td><span class="badge bg-light text-dark">#{{ line.batch }}</span></td>
+                        <td class="text-warning fw-bold">{{ line.pending_qty }}</td>
+                        <td>
+                            <input type="number" class="form-control ship-qty-input" min="0"
+                                   max="{{ line.pending_qty }}" value="0"
+                                   name="ship_{{ line.id }}" onfocus="this.select()"
+                                   style="width:80px">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- 实时总计浮动条 -->
+            <div id="shipCounter" class="ship-counter">
+                <span class="counter-value" id="counterValue">0</span>
+                <span class="counter-unit">双</span>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-warning btn-lg">
+                    <i class="bi bi-check-lg me-1"></i> 确认发货
+                </button>
+                <a href="{{ url_for('order_detail', order_id=order.id) }}" class="btn btn-outline-secondary">返回订单</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+#shipCounter {
+    position: fixed !important;
+    bottom: 21px !important;
+    right: 176px !important;
+    background: rgba(23,21,19,0.94);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 6px;
+    padding: 7px 14px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    box-shadow: 0 12px 28px rgba(31,27,22,0.18);
+    z-index: 1050;
+    transition: all 0.2s ease;
+}
+#shipCounter.has-value {
+    background: #8f6f55;
+    box-shadow: 0 14px 32px rgba(143,111,85,0.26);
+}
+#shipCounter .counter-value {
+    font-size: 20px;
+    font-weight: 700;
+    min-width: 20px;
+    text-align: center;
+}
+#shipCounter .counter-unit { opacity: 0.78; font-size: 11px; }
+#shipCounter.pulse .counter-value { animation: counterPulse 0.3s ease; }
+
+@keyframes counterPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+    #shipCounter { bottom: 50px !important; right: 10px !important; padding: 4px 10px; }
+    #shipCounter .counter-value { font-size: 17px; }
+}
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+const counter = document.getElementById('shipCounter');
+    const counterVal = document.getElementById('counterValue');
+    const inputs = document.querySelectorAll('.ship-qty-input');
+    let total = 0;
+
+    function updateTotal() {
+        let sum = 0;
+        inputs.forEach(inp => { const v = parseInt(inp.value) || 0; sum += v; });
+        if (sum !== total) {
+            counterVal.textContent = sum;
+            if (sum > 0 && total > 0 && sum !== total) {
+                counter.classList.remove('pulse');
+                void counter.offsetWidth;
+                counter.classList.add('pulse');
+            }
+            total = sum;
+        }
+        counter.classList.toggle('has-value', sum > 0);
+        counterVal.textContent = sum || '0';
+    }
+
+    inputs.forEach(inp => {
+        inp.addEventListener('input', updateTotal);
+        inp.addEventListener('change', updateTotal);
+    });
+    updateTotal();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zephyr ERP 中文字体预览</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600&family=Noto+Serif+SC:wght@500;600&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper: #fcfbf9;
+            --line: #e9e3dc;
+            --soft: #f6f2ed;
+            --ink: #1d1a18;
+            --muted: #8f8881;
+            --accent: #8f6f55;
+        }
+
+        * {
+            box-sizing: border-box;
+            letter-spacing: 0;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Microsoft YaHei UI", "Noto Sans SC", sans-serif;
+            color: var(--ink);
+            background: var(--paper);
+        }
+
+        main {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 34px 28px 54px;
+        }
+
+        header {
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 28px;
+            font-weight: 500;
+        }
+
+        p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.7;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 18px;
+        }
+
+        .sample {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: #fff;
+            padding: 22px;
+            box-shadow: 0 10px 24px rgba(31, 27, 22, 0.045);
+        }
+
+        .sample-name {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 14px;
+        }
+
+        .sample h2 {
+            margin: 0 0 16px;
+            font-size: 25px;
+            font-weight: 500;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .stat {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 13px 14px 16px;
+            min-height: 92px;
+            background: linear-gradient(180deg, #fff, #fdfbf8);
+        }
+
+        .label {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .value {
+            margin-top: 18px;
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            padding: 11px 12px;
+            border-bottom: 1px solid #f1ece6;
+            text-align: left;
+        }
+
+        th {
+            background: var(--soft);
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        td:nth-child(n+2),
+        th:nth-child(n+2) {
+            text-align: center;
+        }
+
+        td:last-child,
+        th:last-child,
+        tfoot td {
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        tfoot td {
+            background: var(--soft);
+        }
+
+        .btn-row {
+            margin-top: 16px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            border: 1px solid var(--ink);
+            border-radius: 4px;
+            padding: 8px 14px;
+            color: #fff;
+            background: var(--ink);
+            font: inherit;
+            font-weight: 600;
+        }
+
+        .ghost {
+            color: var(--ink);
+            background: #fff;
+            border-color: var(--line);
+        }
+
+        .yahei { font-family: "Microsoft YaHei UI", "Microsoft YaHei", sans-serif; }
+        .noto { font-family: "Noto Sans SC", "Microsoft YaHei UI", sans-serif; }
+        .pingfang { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei UI", sans-serif; }
+        .serif { font-family: "Noto Serif SC", "Songti SC", SimSun, serif; }
+        .xiaowei { font-family: "ZCOOL XiaoWei", "Noto Serif SC", serif; }
+    </style>
+</head>
+<body>
+    <main>
+        <header>
+            <h1>中文字体预览</h1>
+            <p>看标题、统计卡、表格和按钮的真实后台效果。你可以选一个，我再把全站字体固定下来。</p>
+        </header>
+
+        <section class="grid">
+            <article class="sample yahei">
+                <div class="sample-name">方案 A：微软雅黑 UI，最稳妥、柔和、适合长期办公</div>
+                <h2>首页概览</h2>
+                <div class="stats"><div class="stat"><div class="label">订单数</div><div class="value">14</div></div><div class="stat"><div class="label">已发货</div><div class="value">255</div></div><div class="stat"><div class="label">待发货</div><div class="value">150</div></div></div>
+                <table><thead><tr><th>颜色</th><th>36</th><th>37</th><th>小计</th></tr></thead><tbody><tr><td>米白</td><td>14</td><td>16</td><td>38</td></tr><tr><td>黑</td><td>10</td><td>15</td><td>40</td></tr></tbody><tfoot><tr><td>合计</td><td>81</td><td>91</td><td>255</td></tr></tfoot></table>
+                <div class="btn-row"><button>新建订单</button><button class="ghost">编辑</button></div>
+            </article>
+
+            <article class="sample noto">
+                <div class="sample-name">方案 B：思源黑体，清爽现代，字形比较中性</div>
+                <h2>首页概览</h2>
+                <div class="stats"><div class="stat"><div class="label">订单数</div><div class="value">14</div></div><div class="stat"><div class="label">已发货</div><div class="value">255</div></div><div class="stat"><div class="label">待发货</div><div class="value">150</div></div></div>
+                <table><thead><tr><th>颜色</th><th>36</th><th>37</th><th>小计</th></tr></thead><tbody><tr><td>米白</td><td>14</td><td>16</td><td>38</td></tr><tr><td>黑</td><td>10</td><td>15</td><td>40</td></tr></tbody><tfoot><tr><td>合计</td><td>81</td><td>91</td><td>255</td></tr></tfoot></table>
+                <div class="btn-row"><button>新建订单</button><button class="ghost">编辑</button></div>
+            </article>
+
+            <article class="sample pingfang">
+                <div class="sample-name">方案 C：苹方风格，圆润轻盈，Windows 上会自动回退</div>
+                <h2>首页概览</h2>
+                <div class="stats"><div class="stat"><div class="label">订单数</div><div class="value">14</div></div><div class="stat"><div class="label">已发货</div><div class="value">255</div></div><div class="stat"><div class="label">待发货</div><div class="value">150</div></div></div>
+                <table><thead><tr><th>颜色</th><th>36</th><th>37</th><th>小计</th></tr></thead><tbody><tr><td>米白</td><td>14</td><td>16</td><td>38</td></tr><tr><td>黑</td><td>10</td><td>15</td><td>40</td></tr></tbody><tfoot><tr><td>合计</td><td>81</td><td>91</td><td>255</td></tr></tfoot></table>
+                <div class="btn-row"><button>新建订单</button><button class="ghost">编辑</button></div>
+            </article>
+
+            <article class="sample serif">
+                <div class="sample-name">方案 D：思源宋体，品牌感更强，但办公系统会显得正式</div>
+                <h2>首页概览</h2>
+                <div class="stats"><div class="stat"><div class="label">订单数</div><div class="value">14</div></div><div class="stat"><div class="label">已发货</div><div class="value">255</div></div><div class="stat"><div class="label">待发货</div><div class="value">150</div></div></div>
+                <table><thead><tr><th>颜色</th><th>36</th><th>37</th><th>小计</th></tr></thead><tbody><tr><td>米白</td><td>14</td><td>16</td><td>38</td></tr><tr><td>黑</td><td>10</td><td>15</td><td>40</td></tr></tbody><tfoot><tr><td>合计</td><td>81</td><td>91</td><td>255</td></tr></tfoot></table>
+                <div class="btn-row"><button>新建订单</button><button class="ghost">编辑</button></div>
+            </article>
+
+            <article class="sample xiaowei">
+                <div class="sample-name">方案 E：站酷小薇，柔和有品牌感，只建议用于标题</div>
+                <h2>首页概览</h2>
+                <div class="stats"><div class="stat"><div class="label">订单数</div><div class="value">14</div></div><div class="stat"><div class="label">已发货</div><div class="value">255</div></div><div class="stat"><div class="label">待发货</div><div class="value">150</div></div></div>
+                <table><thead><tr><th>颜色</th><th>36</th><th>37</th><th>小计</th></tr></thead><tbody><tr><td>米白</td><td>14</td><td>16</td><td>38</td></tr><tr><td>黑</td><td>10</td><td>15</td><td>40</td></tr></tbody><tfoot><tr><td>合计</td><td>81</td><td>91</td><td>255</td></tr></tfoot></table>
+                <div class="btn-row"><button>新建订单</button><button class="ghost">编辑</button></div>
+            </article>
+        </section>
+    </main>
+</body>
+</html>

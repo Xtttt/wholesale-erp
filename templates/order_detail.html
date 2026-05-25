@@ -1,0 +1,489 @@
+{% extends "base.html" %}
+{% block title %}订单 {{ order.order_number }}{% endblock %}
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4 class="mb-0">
+        <i class="bi bi-receipt me-2"></i>{{ order.order_number }}
+        {% if order.status == 'completed' %}
+        <span class="badge badge-completed ms-2">已完成</span>
+        {% elif order.status == 'partial' %}
+        <span class="badge badge-partial ms-2">部分发货</span>
+        {% else %}
+        <span class="badge badge-pending ms-2">待发货</span>
+        {% endif %}
+    </h4>
+    <div>
+        {% if order.total_pending > 0 %}
+        <a href="{{ url_for('order_ship', order_id=order.id) }}" class="btn btn-warning btn-sm">
+            <i class="bi bi-truck me-1"></i> 发货
+        </a>
+        {% endif %}
+        <a href="{{ url_for('order_add_batch', order_id=order.id) }}" class="btn btn-outline-info btn-sm">
+            <i class="bi bi-plus-circle me-1"></i> 加单
+        </a>
+    </div>
+</div>
+
+<!-- 基本信息 -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card p-2 text-center">
+            <small class="text-muted">客户</small>
+            <div class="fw-bold">{{ order.customer.name }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-2 text-center">
+            <small class="text-muted">产品</small>
+            <div class="fw-bold">{{ order.product.name }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-2 text-center">
+            <small class="text-muted">单价</small>
+            <div class="fw-bold">{% if order.unit_price %}¥{{ '%.0f'|format(order.unit_price) }}{% else %}-{% endif %}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-2 text-center">
+            <small class="text-muted">下单日期</small>
+            <div class="fw-bold">{{ order.created_at.strftime('%Y-%m-%d') }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- 数量汇总 -->
+<div class="row g-3 mb-4">
+    <div class="col-4">
+        <div class="card stat-card primary p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#orderMatrixModal">
+            <div class="stat-label">订单总数 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:12px"></i></div>
+            <div class="stat-value">{{ order.total_qty }}</div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card stat-card success p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#shippedModal">
+            <div class="stat-label">已发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:12px"></i></div>
+            <div class="stat-value">
+                {{ order.total_shipped }}
+                {% if order.total_shipped > order.total_qty %}<small class="text-danger">(超{{ order.total_shipped - order.total_qty }})</small>{% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-4">
+        <div class="card stat-card {{ 'warning' if order.total_pending > 0 else 'success' }} p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#pendingModal">
+            <div class="stat-label">待发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:12px"></i></div>
+            <div class="stat-value">{{ [order.total_pending, 0]|max }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- 加单时间线 -->
+{% if batches|length > 0 %}
+<div class="card mb-4">
+    <div class="card-header"><strong><i class="bi bi-clock-history me-2"></i>下单记录（{{ batches|length }} 批次）</strong></div>
+    <div class="card-body">
+        <div class="timeline">
+            {% for batch_key, batch_data in batches.items() %}
+            <div class="timeline-item">
+                <div class="d-flex justify-content-between">
+                    <strong>
+                        {% if loop.index == 1 %}📋 首批订单{% else %}🔄 第 {{ batch_data.batch }} 次加单{% endif %}
+                    </strong>
+                    <small class="text-muted">{{ batch_data.created_at }}</small>
+                </div>
+                <div class="mt-2">
+                    <span class="badge bg-light text-dark me-2">订: {{ batch_data.total_qty }}双</span>
+                    <span class="badge bg-success me-2">发: {{ batch_data.total_shipped }}双</span>
+                    {% set pending = batch_data.total_qty - batch_data.total_shipped %}
+                    <span class="badge bg-warning text-dark">剩: {{ pending }}双</span>
+                </div>
+                <!-- 尺码矩阵 -->
+                <div class="table-responsive mt-2">
+                    <table class="table table-bordered table-sm matrix-table">
+                        <thead>
+                            <tr>
+                                <th style="width:80px">颜色</th>
+                                {% for s in sizes %}<th>{{ s.size_label }}</th>{% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set batch_colors = {} %}
+                            {% for line in batch_data.lines %}
+                                {% set _ = batch_colors.update({line.color: batch_colors.get(line.color, []) + [line]}) %}
+                            {% endfor %}
+                            {% for color in colors %}
+                            {% set clines = batch_colors.get(color.name, []) %}
+                            <tr>
+                                <td class="color-label">
+                                    <span class="color-dot" style="background:{{ color.hex_code }}"></span>{{ color.name }}
+                                </td>
+                                {% for s in sizes %}
+                                {% set found = namespace(line=none) %}
+                                {% for cl in clines %}{% if cl.size == s.size_label %}{% set found.line = cl %}{% endif %}{% endfor %}
+                                <td>
+                                    {% if found.line %}
+                                    {% if found.line.qty == found.line.shipped_qty %}
+                                    <span class="text-success fw-bold">{{ found.line.qty }}</span>
+                                    {% else %}
+                                    <div>{{ found.line.qty }}</div>
+                                    <small class="text-{{ 'warning' if found.line.shipped_qty > 0 else 'danger' }}">
+                                        已发{{ found.line.shipped_qty }} / 待{{ found.line.pending_qty }}
+                                    </small>
+                                    {% endif %}
+                                    {% else %}
+                                    <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 发货历史 -->
+{% if shipments %}
+<div class="card">
+    <div class="card-header">
+        <strong><i class="bi bi-truck me-2"></i>发货历史</strong>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>发货日期</th>
+                    <th>数量</th>
+                    <th>明细</th>
+                    <th>物流</th>
+                    <th>备注</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in shipments %}
+                <tr style="cursor:pointer" onclick="showShipmentDetail('shipment-{{ s.id }}')">
+                    <td>{{ s.ship_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <strong>{{ s.total_shipped }}</strong> 双
+                        {% if s.is_overship %}<span class="badge bg-danger" style="font-size:10px">超{{ s.over_qty }}</span>{% endif %}
+                    </td>
+                    <td>
+                        {% for d in s.details.all() %}
+                        <span class="badge bg-light text-dark me-1">{{ d.color }} {{ d.size }} ×{{ d.qty }}</span>
+                        {% endfor %}
+                    </td>
+                    <td onclick="event.stopPropagation()">
+                        {% if s.logistics_company or s.tracking_number %}
+                        <small>{{ s.logistics_company }} {{ s.tracking_number }}</small>
+                        <button class="btn btn-sm btn-outline-secondary ms-1" style="font-size:10px;padding:0 4px"
+                                onclick="event.stopPropagation();editLogistics({{ s.id }},'{{ s.logistics_company|default('',true) }}','{{ s.tracking_number|default('',true) }}')">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        {% else %}
+                        <button class="btn btn-sm btn-outline-warning" style="font-size:11px"
+                                onclick="event.stopPropagation();editLogistics({{ s.id }},'','')">
+                            <i class="bi bi-plus me-1"></i>添物流
+                        </button>
+                        {% endif %}
+                    </td>
+                    <td><small>{{ s.notes or '-' }}</small></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if order.notes %}
+<div class="card mt-3">
+    <div class="card-body">
+        <small class="text-muted">备注：</small>{{ order.notes }}
+    </div>
+</div>
+{% endif %}
+
+<!-- ====== 模态层：订单总数总览 ====== -->
+<div class="modal fade" id="orderMatrixModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-grid-3x3-gap me-2"></i>订单总览 — {{ order.total_qty }} 双</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-bordered matrix-table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:80px">颜色</th>
+                            {% for s in sizes %}<th>{{ s.size_label }}</th>{% endfor %}
+                            <th>小计</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for color in colors %}
+                        <tr>
+                            <td class="color-label">
+                                <span class="color-dot" style="background:{{ color.hex_code }}"></span>{{ color.name }}
+                            </td>
+                            {% set row_total = namespace(q=0) %}
+                            {% for s in sizes %}
+                            {% set q = order_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set sq = shipped_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set pq = pending_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set row_total.q = row_total.q + q %}
+                            <td>
+                                {% if q > 0 %}
+                                <strong>{{ q }}</strong>
+                                <small class="d-block text-muted" style="font-size:10px">发{{ sq }}/待{{ pq }}</small>
+                                {% else %}<span class="text-muted">-</span>{% endif %}
+                            </td>
+                            {% endfor %}
+                            <td><strong>{{ row_total.q }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td>合计</td>
+                            {% for s in sizes %}
+                            {% set col_total = namespace(q=0) %}
+                            {% for color in colors %}
+                            {% set col_total.q = col_total.q + order_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% endfor %}
+                            <td>{{ col_total.q }}</td>
+                            {% endfor %}
+                            <td>{{ order.total_qty }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== 模态层：已发货总览 ====== -->
+<div class="modal fade" id="shippedModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>已发货总览 — {{ order.total_shipped }} 双
+                    {% if order.total_shipped > order.total_qty %}<span class="badge bg-danger ms-2">超{{ order.total_shipped - order.total_qty }}</span>{% endif %}
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-bordered matrix-table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:80px">颜色</th>
+                            {% for s in sizes %}<th>{{ s.size_label }}</th>{% endfor %}
+                            <th>小计</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for color in colors %}
+                        <tr>
+                            <td class="color-label">
+                                <span class="color-dot" style="background:{{ color.hex_code }}"></span>{{ color.name }}
+                            </td>
+                            {% set row_total = namespace(q=0) %}
+                            {% for s in sizes %}
+                            {% set ship_q = shipped_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set ord_q = order_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set row_total.q = row_total.q + ship_q %}
+                            <td>
+                                {% if ship_q > ord_q %}
+                                <strong class="text-danger">{{ ship_q }}</strong>
+                                <span class="badge bg-danger" style="font-size:9px">超{{ ship_q - ord_q }}</span>
+                                {% elif ship_q > 0 %}
+                                <strong class="text-success">{{ ship_q }}</strong>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                            <td><strong>{{ row_total.q }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td>合计</td>
+                            {% for s in sizes %}
+                            {% set col_total = namespace(q=0) %}
+                            {% for color in colors %}
+                            {% set col_total.q = col_total.q + shipped_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% endfor %}
+                            <td>{{ col_total.q }}</td>
+                            {% endfor %}
+                            <td>{{ order.total_shipped }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== 模态层：待发货总览 ====== -->
+<div class="modal fade" id="pendingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title"><i class="bi bi-hourglass-split me-2"></i>待发货总览 — {{ [order.total_pending, 0]|max }} 双</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-bordered matrix-table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:80px">颜色</th>
+                            {% for s in sizes %}<th>{{ s.size_label }}</th>{% endfor %}
+                            <th>小计</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for color in colors %}
+                        <tr>
+                            <td class="color-label">
+                                <span class="color-dot" style="background:{{ color.hex_code }}"></span>{{ color.name }}
+                            </td>
+                            {% set row_total = namespace(q=0) %}
+                            {% for s in sizes %}
+                            {% set pend_q = pending_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set row_total.q = row_total.q + pend_q %}
+                            <td>
+                                {% if pend_q > 0 %}
+                                <strong class="text-danger">{{ pend_q }}</strong>
+                                {% elif pend_q < 0 %}
+                                <strong class="text-danger bg-danger bg-opacity-10 rounded px-1">超{{ -pend_q }}</strong>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            {% endfor %}
+                            <td><strong>{{ row_total.q }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td>合计</td>
+                            {% for s in sizes %}
+                            {% set col_total = namespace(q=0) %}
+                            {% for color in colors %}
+                            {% set col_total.q = col_total.q + pending_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% endfor %}
+                            <td>{{ col_total.q }}</td>
+                            {% endfor %}
+                            <td>{{ order.total_pending }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ====== 模态层：单次发货详情（JS动态填充） ====== -->
+<div class="modal fade" id="shipmentDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="shipmentModalTitle"><i class="bi bi-box-seam me-2"></i>发货详情</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0" id="shipmentModalBody"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+var shipmentData = {
+    {% for sm in shipment_matrices %}
+    'shipment-{{ sm.id }}': {
+        date: '{{ sm.date }}',
+        total: {{ sm.total }},
+        notes: '{{ sm.notes|default("", true) }}',
+        matrix: {{ sm.matrix|tojson }}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+};
+var shipmentColors = {{ colors|map(attribute='name')|list|tojson }};
+var shipmentSizes = {{ sizes|map(attribute='size_label')|list|tojson }};
+var shipmentColorHex = { {% for c in colors %}'{{ c.name }}': '{{ c.hex_code }}'{% if not loop.last %},{% endif %}{% endfor %} };
+
+function showShipmentDetail(key) {
+    var data = shipmentData[key];
+    if (!data) return;
+    document.getElementById('shipmentModalTitle').innerHTML = '<i class="bi bi-box-seam me-2"></i>发货详情 — ' + data.date + ' | ' + data.total + ' 双';
+    var html = '<table class="table table-bordered matrix-table mb-0">';
+    html += '<thead class="table-light"><tr><th style="width:80px">颜色</th>';
+    shipmentSizes.forEach(function(s) { html += '<th>' + s + '</th>'; });
+    html += '<th>小计</th></tr></thead><tbody>';
+    shipmentColors.forEach(function(color) {
+        html += '<tr><td class="color-label"><span class="color-dot" style="background:' + (shipmentColorHex[color]||'#ccc') + '"></span>' + color + '</td>';
+        var rowTotal = 0, cm = data.matrix[color] || {};
+        shipmentSizes.forEach(function(s) { var q = cm[s] || 0; rowTotal += q; html += '<td>' + (q > 0 ? '<strong class="text-success">' + q + '</strong>' : '<span class="text-muted">-</span>') + '</td>'; });
+        html += '<td><strong>' + rowTotal + '</strong></td></tr>';
+    });
+    html += '</tbody><tfoot class="table-light fw-bold"><tr><td>合计</td>';
+    shipmentSizes.forEach(function(s) {
+        var ct = 0; shipmentColors.forEach(function(c) { ct += (data.matrix[c]||{})[s] || 0; });
+        html += '<td>' + ct + '</td>';
+    });
+    html += '<td>' + data.total + '</td></tr></tfoot></table>';
+    if (data.notes) html += '<div class="p-2 text-muted"><small>备注：' + data.notes + '</small></div>';
+    if (data.logistics) html += '<div class="p-2"><small><i class="bi bi-truck me-1"></i>物流：' + data.logistics + '</small></div>';
+    document.getElementById('shipmentModalBody').innerHTML = html;
+    new bootstrap.Modal(document.getElementById('shipmentDetailModal')).show();
+}
+
+var logisticsShipmentId = null;
+function editLogistics(sid, company, tracking) {
+    logisticsShipmentId = sid;
+    document.getElementById('logiCompany').value = company;
+    document.getElementById('logiTracking').value = tracking;
+    new bootstrap.Modal(document.getElementById('logisticsModal')).show();
+}
+function saveLogistics() {
+    if (!logisticsShipmentId) return;
+    var form = document.getElementById('logisticsForm');
+    form.action = '/orders/{{ order.id }}/shipments/' + logisticsShipmentId + '/logistics';
+    form.submit();
+}
+</script>
+
+<!-- ====== 模态层：补填物流 ====== -->
+<div class="modal fade" id="logisticsModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title"><i class="bi bi-truck me-1"></i>物流信息</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="logisticsForm" method="POST" onsubmit="saveLogistics(); return false;">
+                    <div class="mb-2">
+                        <label class="form-label small">物流公司</label>
+                        <input type="text" id="logiCompany" name="logistics_company" class="form-control form-control-sm" placeholder="如：顺丰">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small">快递单号</label>
+                        <input type="text" id="logiTracking" name="tracking_number" class="form-control form-control-sm" placeholder="如：SF1234567890">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm w-100">保存</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
