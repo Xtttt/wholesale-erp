@@ -179,6 +179,23 @@ class Shipment(db.Model):
     def total_shipped(self):
         return sum(d.qty for d in self.details.all())
 
+    @property
+    def is_overship(self):
+        """是否包含超发"""
+        return self.over_qty > 0
+
+    @property
+    def over_qty(self):
+        """超发数量"""
+        total = 0
+        for d in self.details.all():
+            line = OrderLine.query.get(d.order_line_id)
+            if line and line.shipped_qty > line.qty:
+                # 计算该行本次贡献的超发量
+                overship = max(0, line.shipped_qty - line.qty)
+                total += min(d.qty, overship)
+        return total
+
     def to_dict(self):
         return {
             'id': self.id,

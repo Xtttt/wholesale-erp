@@ -63,7 +63,7 @@
                         <td><span class="badge bg-light text-dark">#{{ line.batch }}</span></td>
                         <td class="text-warning fw-bold">{{ line.pending_qty }}</td>
                         <td>
-                            <input type="number" class="form-control" min="0"
+                            <input type="number" class="form-control ship-qty-input" min="0"
                                    max="{{ line.pending_qty }}" value="0"
                                    name="ship_{{ line.id }}" onfocus="this.select()"
                                    style="width:80px">
@@ -73,7 +73,13 @@
                 </tbody>
             </table>
 
-            <div class="d-flex gap-2">
+            <!-- 实时总计浮动条 -->
+            <div id="shipCounter" class="ship-counter">
+                <span class="counter-value" id="counterValue">0</span>
+                <span class="counter-unit">双</span>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
                 <button type="submit" class="btn btn-warning btn-lg">
                     <i class="bi bi-check-lg me-1"></i> 确认发货
                 </button>
@@ -83,4 +89,78 @@
     </div>
 </div>
 
+<style>
+#shipCounter {
+    position: fixed !important;
+    bottom: 21px !important;
+    right: 176px !important;
+    background: rgba(26,26,46,0.88);
+    color: #fff;
+    border-radius: 18px;
+    padding: 6px 14px;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 4px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.22);
+    z-index: 1050;
+    transition: all 0.2s ease;
+}
+#shipCounter.has-value {
+    background: linear-gradient(135deg, #e07b30, #f08c3e);
+    box-shadow: 0 4px 16px rgba(240,140,62,0.35);
+}
+#shipCounter .counter-value {
+    font-size: 20px;
+    font-weight: 800;
+    min-width: 20px;
+    text-align: center;
+}
+#shipCounter .counter-unit { opacity: 0.78; font-size: 11px; }
+#shipCounter.pulse .counter-value { animation: counterPulse 0.3s ease; }
+
+@keyframes counterPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+
+@media (max-width: 768px) {
+    #shipCounter { bottom: 50px !important; right: 10px !important; padding: 4px 10px; }
+    #shipCounter .counter-value { font-size: 17px; }
+}
+</style>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+const counter = document.getElementById('shipCounter');
+    const counterVal = document.getElementById('counterValue');
+    const inputs = document.querySelectorAll('.ship-qty-input');
+    let total = 0;
+
+    function updateTotal() {
+        let sum = 0;
+        inputs.forEach(inp => { const v = parseInt(inp.value) || 0; sum += v; });
+        if (sum !== total) {
+            counterVal.textContent = sum;
+            if (sum > 0 && total > 0 && sum !== total) {
+                counter.classList.remove('pulse');
+                void counter.offsetWidth;
+                counter.classList.add('pulse');
+            }
+            total = sum;
+        }
+        counter.classList.toggle('has-value', sum > 0);
+        counterVal.textContent = sum || '0';
+    }
+
+    inputs.forEach(inp => {
+        inp.addEventListener('input', updateTotal);
+        inp.addEventListener('change', updateTotal);
+    });
+    updateTotal();
+})();
+</script>
 {% endblock %}

@@ -64,13 +64,16 @@
     <div class="col-4">
         <div class="card stat-card success p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#shippedModal">
             <div class="stat-label">已发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:12px"></i></div>
-            <div class="stat-value">{{ order.total_shipped }}</div>
+            <div class="stat-value">
+                {{ order.total_shipped }}
+                {% if order.total_shipped > order.total_qty %}<small class="text-danger">(超{{ order.total_shipped - order.total_qty }})</small>{% endif %}
+            </div>
         </div>
     </div>
     <div class="col-4">
         <div class="card stat-card {{ 'warning' if order.total_pending > 0 else 'success' }} p-3" style="cursor:pointer" data-bs-toggle="modal" data-bs-target="#pendingModal">
             <div class="stat-label">待发货 <i class="bi bi-box-arrow-up-right ms-1" style="font-size:12px"></i></div>
-            <div class="stat-value">{{ order.total_pending }}</div>
+            <div class="stat-value">{{ [order.total_pending, 0]|max }}</div>
         </div>
     </div>
 </div>
@@ -166,7 +169,10 @@
                 {% for s in shipments %}
                 <tr style="cursor:pointer" onclick="showShipmentDetail('shipment-{{ s.id }}')">
                     <td>{{ s.ship_date.strftime('%Y-%m-%d %H:%M') }}</td>
-                    <td><strong>{{ s.total_shipped }}</strong> 双</td>
+                    <td>
+                        <strong>{{ s.total_shipped }}</strong> 双
+                        {% if s.is_overship %}<span class="badge bg-danger" style="font-size:10px">超{{ s.over_qty }}</span>{% endif %}
+                    </td>
                     <td>
                         {% for d in s.details.all() %}
                         <span class="badge bg-light text-dark me-1">{{ d.color }} {{ d.size }} ×{{ d.qty }}</span>
@@ -267,7 +273,9 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>已发货总览 — {{ order.total_shipped }} 双</h5>
+                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>已发货总览 — {{ order.total_shipped }} 双
+                    {% if order.total_shipped > order.total_qty %}<span class="badge bg-danger ms-2">超{{ order.total_shipped - order.total_qty }}</span>{% endif %}
+                </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
@@ -287,10 +295,18 @@
                             </td>
                             {% set row_total = namespace(q=0) %}
                             {% for s in sizes %}
-                            {% set q = shipped_matrix.get(color.name, {}).get(s.size_label, 0) %}
-                            {% set row_total.q = row_total.q + q %}
+                            {% set ship_q = shipped_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set ord_q = order_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set row_total.q = row_total.q + ship_q %}
                             <td>
-                                {% if q > 0 %}<strong class="text-success">{{ q }}</strong>{% else %}<span class="text-muted">-</span>{% endif %}
+                                {% if ship_q > ord_q %}
+                                <strong class="text-danger">{{ ship_q }}</strong>
+                                <span class="badge bg-danger" style="font-size:9px">超{{ ship_q - ord_q }}</span>
+                                {% elif ship_q > 0 %}
+                                <strong class="text-success">{{ ship_q }}</strong>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
                             </td>
                             {% endfor %}
                             <td><strong>{{ row_total.q }}</strong></td>
@@ -321,7 +337,7 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-warning">
-                <h5 class="modal-title"><i class="bi bi-hourglass-split me-2"></i>待发货总览 — {{ order.total_pending }} 双</h5>
+                <h5 class="modal-title"><i class="bi bi-hourglass-split me-2"></i>待发货总览 — {{ [order.total_pending, 0]|max }} 双</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
@@ -341,10 +357,16 @@
                             </td>
                             {% set row_total = namespace(q=0) %}
                             {% for s in sizes %}
-                            {% set q = pending_matrix.get(color.name, {}).get(s.size_label, 0) %}
-                            {% set row_total.q = row_total.q + q %}
+                            {% set pend_q = pending_matrix.get(color.name, {}).get(s.size_label, 0) %}
+                            {% set row_total.q = row_total.q + pend_q %}
                             <td>
-                                {% if q > 0 %}<strong class="text-danger">{{ q }}</strong>{% else %}<span class="text-muted">-</span>{% endif %}
+                                {% if pend_q > 0 %}
+                                <strong class="text-danger">{{ pend_q }}</strong>
+                                {% elif pend_q < 0 %}
+                                <strong class="text-danger bg-danger bg-opacity-10 rounded px-1">超{{ -pend_q }}</strong>
+                                {% else %}
+                                <span class="text-muted">-</span>
+                                {% endif %}
                             </td>
                             {% endfor %}
                             <td><strong>{{ row_total.q }}</strong></td>
