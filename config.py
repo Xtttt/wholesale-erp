@@ -9,3 +9,6 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     UPLOAD_FOLDER = os.path.join(BASE_DIR, 'uploads')
     MAX_CONTENT_LENGTH = 16 * 1024 * 1024  # 16MB max upload
+
+    # 登录密码
+    APP_PASSWORD = os.environ.get('APP_PASSWORD', '190712')

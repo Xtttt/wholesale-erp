@@ -1,7 +1,8 @@
 """批发订单管理系统 - Flask 应用主文件"""
 import os
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from functools import wraps
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from werkzeug.utils import secure_filename
 from config import Config
 from models import db, Customer, Product, ProductColor, ProductSize, Order, OrderLine, Shipment, ShipDetail
@@ -52,9 +53,49 @@ def _seed_default_data():
 app = create_app()
 
 
+# ========== 登录认证 ==========
+
+def login_required(f):
+    """登录保护装饰器"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('logged_in'):
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """登录页面"""
+    if session.get('logged_in'):
+        return redirect(url_for('dashboard'))
+
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        if password == app.config.get('APP_PASSWORD', '190712'):
+            session['logged_in'] = True
+            flash('登录成功', 'success')
+            return redirect(url_for('dashboard'))
+        else:
+            flash('密码错误，请重试', 'error')
+            return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    """退出登录"""
+    session.clear()
+    flash('已退出登录', 'info')
+    return redirect(url_for('login'))
+
+
 # ========== 首页仪表盘 ==========
 
 @app.route('/')
+@login_required
 def dashboard():
     customers_count = Customer.query.count()
     orders_total = Order.query.count()
@@ -100,12 +141,14 @@ def dashboard():
 # ========== 客户管理 ==========
 
 @app.route('/customers')
+@login_required
 def customer_list():
     customers = Customer.query.order_by(Customer.name).all()
     return render_template('customers.html', customers=customers)
 
 
 @app.route('/customers/<int:customer_id>')
+@login_required
 def customer_detail(customer_id):
     customer = Customer.query.get_or_404(customer_id)
     orders = customer.orders.order_by(Order.created_at.desc()).all()
@@ -113,6 +156,7 @@ def customer_detail(customer_id):
 
 
 @app.route('/customers/add', methods=['GET', 'POST'])
+@login_required
 def customer_add():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -142,6 +186,7 @@ def customer_add():
 
 
 @app.route('/customers/<int:customer_id>/edit', methods=['GET', 'POST'])
+@login_required
 def customer_edit(customer_id):
     customer = Customer.query.get_or_404(customer_id)
 
@@ -175,6 +220,7 @@ def customer_edit(customer_id):
 
 
 @app.route('/customers/<int:customer_id>/delete', methods=['POST'])
+@login_required
 def customer_delete(customer_id):
     customer = Customer.query.get_or_404(customer_id)
     name = customer.name
@@ -201,6 +247,7 @@ def _delete_order(order):
 # ========== 订单管理 ==========
 
 @app.route('/orders')
+@login_required
 def order_list():
     orders = Order.query.order_by(Order.created_at.desc()).all()
 
@@ -237,6 +284,7 @@ def order_list():
 
 
 @app.route('/orders/add', methods=['GET', 'POST'])
+@login_required
 def order_add():
     customers = Customer.query.order_by(Customer.name).all()
     products = Product.query.filter_by(is_active=True).all()
@@ -313,6 +361,7 @@ def order_add():
 
 
 @app.route('/orders/<int:order_id>')
+@login_required
 def order_detail(order_id):
     order = Order.query.get_or_404(order_id)
     product = order.product
@@ -370,6 +419,7 @@ def order_detail(order_id):
 
 
 @app.route('/orders/<int:order_id>/add-batch', methods=['GET', 'POST'])
+@login_required
 def order_add_batch(order_id):
     """加单"""
     order = Order.query.get_or_404(order_id)
@@ -425,6 +475,7 @@ def order_add_batch(order_id):
 # ========== 发货管理 ==========
 
 @app.route('/orders/<int:order_id>/ship', methods=['GET', 'POST'])
+@login_required
 def order_ship(order_id):
     """发货页面"""
     order = Order.query.get_or_404(order_id)
@@ -504,6 +555,7 @@ def order_ship(order_id):
 
 
 @app.route('/orders/<int:order_id>/shipments/<int:shipment_id>')
+@login_required
 def shipment_detail(order_id, shipment_id):
     """发货记录详情"""
     order = Order.query.get_or_404(order_id)
@@ -512,6 +564,7 @@ def shipment_detail(order_id, shipment_id):
 
 
 @app.route('/orders/<int:order_id>/shipments/<int:shipment_id>/logistics', methods=['POST'])
+@login_required
 def shipment_update_logistics(order_id, shipment_id):
     """补填物流信息"""
     shipment = Shipment.query.get_or_404(shipment_id)
@@ -525,12 +578,14 @@ def shipment_update_logistics(order_id, shipment_id):
 # ========== 产品配置 ==========
 
 @app.route('/products')
+@login_required
 def product_list():
     products = Product.query.order_by(Product.created_at.desc()).all()
     return render_template('products.html', products=products)
 
 
 @app.route('/products/add', methods=['GET', 'POST'])
+@login_required
 def product_add():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -587,6 +642,7 @@ def product_add():
 
 
 @app.route('/products/<int:product_id>/edit', methods=['GET', 'POST'])
+@login_required
 def product_edit(product_id):
     product = Product.query.get_or_404(product_id)
 
@@ -642,12 +698,14 @@ def product_edit(product_id):
 # ========== API ==========
 
 @app.route('/api/customer/<int:customer_id>/price')
+@login_required
 def api_customer_price(customer_id):
     customer = Customer.query.get_or_404(customer_id)
     return jsonify({'unit_price': customer.unit_price})
 
 
 @app.route('/api/product/<int:product_id>/config')
+@login_required
 def api_product_config(product_id):
     product = Product.query.get_or_404(product_id)
     colors = product.colors.order_by(ProductColor.sort_order).all()
