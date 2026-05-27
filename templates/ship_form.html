@@ -21,8 +21,8 @@
         <form method="POST">
             <div class="row g-3 mb-3">
                 <div class="col-md-3">
-                    <label class="form-label">发货日期</label>
-                    <input type="date" name="ship_date" class="form-control" value="{{ now.strftime('%Y-%m-%d') }}">
+                    <label class="form-label">发货时间</label>
+                    <input type="datetime-local" name="ship_date" class="form-control" value="{{ now.strftime('%Y-%m-%dT%H:%M') }}">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">物流公司</label>

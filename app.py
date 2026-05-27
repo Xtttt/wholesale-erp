@@ -497,9 +497,12 @@ def order_ship(order_id):
         tracking_number = request.form.get('tracking_number', '').strip()
 
         try:
-            ship_date = datetime.strptime(ship_date_str, '%Y-%m-%d')
+            ship_date = datetime.strptime(ship_date_str, '%Y-%m-%dT%H:%M')
         except (ValueError, TypeError):
-            ship_date = datetime.utcnow()
+            try:
+                ship_date = datetime.strptime(ship_date_str, '%Y-%m-%d')
+            except (ValueError, TypeError):
+                ship_date = datetime.utcnow()
 
         shipment = Shipment(
             order_id=order.id,

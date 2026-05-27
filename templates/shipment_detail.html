@@ -23,7 +23,7 @@
             </div>
             <div class="col-md-6">
                 <table class="table table-sm table-borderless">
-                    <tr><td class="text-muted" style="width:80px">发货日期</td><td><strong>{{ shipment.ship_date.strftime('%Y-%m-%d') }}</strong></td></tr>
+                    <tr><td class="text-muted" style="width:80px">发货时间</td><td><strong>{{ shipment.ship_date.strftime('%Y-%m-%d %H:%M') }}</strong></td></tr>
                     <tr><td class="text-muted">发货数量</td><td><strong class="fs-5">{{ shipment.total_shipped }} 双</strong></td></tr>
                 </table>
             </div>

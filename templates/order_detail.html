@@ -214,7 +214,7 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title"><i class="bi bi-grid-3x3-gap me-2"></i>订单总览 — {{ order.total_qty }} 双</h5>
+                <h5 class="modal-title"><i class="bi bi-grid-3x3-gap me-2"></i>{{ order.customer.name }} — {{ order.order_number }} 订单总览 — {{ order.total_qty }} 双</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
@@ -273,7 +273,7 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>已发货总览 — {{ order.total_shipped }} 双
+                <h5 class="modal-title"><i class="bi bi-check-circle me-2"></i>{{ order.customer.name }} — {{ order.order_number }} 已发货总览 — {{ order.total_shipped }} 双
                     {% if order.total_shipped > order.total_qty %}<span class="badge bg-danger ms-2">超{{ order.total_shipped - order.total_qty }}</span>{% endif %}
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -337,7 +337,7 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-warning">
-                <h5 class="modal-title"><i class="bi bi-hourglass-split me-2"></i>待发货总览 — {{ [order.total_pending, 0]|max }} 双</h5>
+                <h5 class="modal-title"><i class="bi bi-hourglass-split me-2"></i>{{ order.customer.name }} — {{ order.order_number }} 待发货总览 — {{ [order.total_pending, 0]|max }} 双</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0">
