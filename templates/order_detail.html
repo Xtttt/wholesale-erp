@@ -397,7 +397,7 @@
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title" id="shipmentModalTitle"><i class="bi bi-box-seam me-2"></i>发货详情</h5>
+                <h5 class="modal-title" id="shipmentModalTitle"><i class="bi bi-box-seam me-2"></i>{{ order.customer.name }} — {{ order.order_number }} 发货详情</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-0" id="shipmentModalBody"></div>
@@ -423,7 +423,7 @@ var shipmentColorHex = { {% for c in colors %}'{{ c.name }}': '{{ c.hex_code }}'
 function showShipmentDetail(key) {
     var data = shipmentData[key];
     if (!data) return;
-    document.getElementById('shipmentModalTitle').innerHTML = '<i class="bi bi-box-seam me-2"></i>发货详情 — ' + data.date + ' | ' + data.total + ' 双';
+    document.getElementById('shipmentModalTitle').innerHTML = '<i class="bi bi-box-seam me-2"></i>{{ order.customer.name }} — {{ order.order_number }} 发货详情 — ' + data.date + ' | ' + data.total + ' 双';
     var html = '<table class="table table-bordered matrix-table mb-0">';
     html += '<thead class="table-light"><tr><th style="width:80px">颜色</th>';
     shipmentSizes.forEach(function(s) { html += '<th>' + s + '</th>'; });

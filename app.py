@@ -1,6 +1,6 @@
 """批发订单管理系统 - Flask 应用主文件"""
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import wraps
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session
 from werkzeug.utils import secure_filename
@@ -554,7 +554,7 @@ def order_ship(order_id):
 
     return render_template('ship_form.html', order=order, product=product,
                            colors=colors, sizes=sizes, pending_lines=pending_lines,
-                           now=datetime.utcnow())
+                           now=datetime.utcnow() + timedelta(hours=8))
 
 
 @app.route('/orders/<int:order_id>/shipments/<int:shipment_id>')
